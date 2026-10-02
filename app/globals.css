@@ -1,0 +1,243 @@
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------ */
+/* Design tokens                                                       */
+/* Graphite surfaces + gold accent. Headings: Fraunces. Body: Manrope. */
+/* ------------------------------------------------------------------ */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-gold-deep: var(--gold-deep);
+  --color-silver: var(--silver);
+  --color-ink: var(--ink);
+  --color-bone: var(--bone);
+
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
+
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.7);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.9);
+  --radius-3xl: calc(var(--radius) * 2.6);
+  --radius-4xl: calc(var(--radius) * 3.4);
+
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-float-slow: float 9s ease-in-out infinite;
+  --animate-marquee: marquee 40s linear infinite;
+}
+
+:root {
+  color-scheme: dark;
+
+  --background: #1b1d20;
+  --foreground: #eef0f2;
+  --card: #25282c;
+  --card-foreground: #eef0f2;
+  --popover: #25282c;
+  --popover-foreground: #eef0f2;
+  --primary: #c79638;
+  --primary-foreground: #141517;
+  --secondary: #34373b;
+  --secondary-foreground: #eef0f2;
+  --muted: #292c30;
+  --muted-foreground: #b1b3b7;
+  --accent: #3b3e43;
+  --accent-foreground: #eef0f2;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: rgba(177, 179, 183, 0.18);
+  --input: rgba(177, 179, 183, 0.24);
+  --ring: #c79638;
+
+  --gold: #c79638;
+  --gold-soft: #d8b66c;
+  --gold-deep: #8f6825;
+  --silver: #b1b3b7;
+  /* ink = dark (text on gold buttons); bone = light (text on graphite) */
+  --ink: #141517;
+  --bone: #eef0f2;
+
+  --radius: 1.25rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Base                                                                */
+/* ------------------------------------------------------------------ */
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    scrollbar-color: #3b3e43 transparent;
+  }
+
+  body {
+    @apply font-sans text-foreground antialiased;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: clip;
+    background-color: var(--background);
+    background-image:
+      linear-gradient(135deg, rgba(181, 184, 188, 0.055) 0%, transparent 42%, rgba(0, 0, 0, 0.2) 100%),
+      repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 4px),
+      repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.035) 0 1px, transparent 1px 5px),
+      radial-gradient(circle at 18% 8%, rgba(181, 184, 188, 0.08), transparent 34%),
+      radial-gradient(circle at 82% 92%, rgba(181, 184, 188, 0.045), transparent 38%),
+      linear-gradient(145deg, #222529 0%, #1b1d20 48%, #151719 100%);
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Fixed backgrounds are janky/expensive on iOS: only on large pointer screens. */
+  @media (min-width: 1024px) and (hover: hover) {
+    body {
+      background-attachment: fixed;
+    }
+  }
+
+  ::selection {
+    background: rgba(199, 150, 56, 0.35);
+    color: var(--bone);
+  }
+
+  /* Keyboard focus: gold ring with offset, everywhere. */
+  :focus-visible {
+    outline: 2px solid var(--gold-soft);
+    outline-offset: 3px;
+  }
+
+  /* Anchored sections/headings clear the fixed header. */
+  [id] {
+    scroll-margin-top: 6rem;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Custom utilities (declared with @utility so variants work:          */
+/* hover:shadow-luxe-lg, md:glass, focus:bg-gold-gradient, ...)        */
+/* ------------------------------------------------------------------ */
+
+@utility text-gradient-gold {
+  background: linear-gradient(110deg, #a87a2c 0%, #c79638 42%, #f0d28a 68%, #c79638 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #c79638;
+}
+
+/* Starts at #a87a2c (not gold-deep) so dark ink text keeps AA contrast end to end. */
+@utility bg-gold-gradient {
+  background: linear-gradient(120deg, #a87a2c 0%, #c79638 46%, #e1bb68 100%);
+}
+
+@utility gold-hairline {
+  background: linear-gradient(90deg, transparent, #8f6825 20%, #e1bb68 50%, #8f6825 80%, transparent);
+}
+
+/* Architectural surfaces: depth comes from tonal separation, not outlines. */
+@utility glass {
+  background: color-mix(in srgb, var(--card) 92%, var(--background));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+@utility shadow-luxe {
+  box-shadow:
+    0 1px 0 rgba(238, 240, 242, 0.045) inset,
+    0 14px 32px -24px rgba(0, 0, 0, 0.9),
+    0 3px 10px -8px rgba(0, 0, 0, 0.7);
+}
+
+@utility shadow-luxe-lg {
+  box-shadow:
+    0 1px 0 rgba(238, 240, 242, 0.06) inset,
+    0 24px 48px -28px rgba(0, 0, 0, 0.95),
+    0 8px 18px -14px rgba(0, 0, 0, 0.8);
+}
+
+/* Subtle light specks for dark surfaces. */
+@utility grain {
+  background-image: radial-gradient(rgba(238, 240, 242, 0.035) 1px, transparent 1px);
+  background-size: 3px 3px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Keyframes                                                           */
+/* ------------------------------------------------------------------ */
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+/* Seamless strip: render the content twice inside the animated track. */
+@keyframes marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* Hovering (or focusing inside) a marquee track pauses it. */
+.animate-marquee:hover,
+.animate-marquee:focus-within {
+  animation-play-state: paused;
+}
+
+/* ------------------------------------------------------------------ */
+/* Reduced motion                                                      */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-marquee,
+  .animate-float,
+  .animate-float-slow {
+    animation: none !important;
+  }
+}
