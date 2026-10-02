@@ -1,7 +1,7 @@
 'use client'
 
 import { X } from 'lucide-react'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react'
 import {
   useCallback,
   useEffect,
@@ -12,7 +12,6 @@ import {
   type FocusEvent as ReactFocusEvent,
 } from 'react'
 import { Logo } from '@/components/logo'
-import { WhatsAppButton } from '@/components/ui/whatsapp-button'
 import { track, WHATSAPP_CLICK_EVENT } from '@/lib/analytics'
 import { COPY } from '@/lib/content'
 import { WHATSAPP_POPUP } from '@/lib/site'
@@ -21,14 +20,14 @@ import { cn } from '@/lib/utils'
 const EASE = [0.22, 1, 0.36, 1] as const
 const LOCATION = 'popup'
 
-/** Seconds of visible time on the site, carried across / and /catalogo. */
+/** Segundos de tela visível nesta sessão (continua entre / e /catalogo). */
 const ELAPSED_KEY = 'primo:popup-elapsed'
-/** Set once the visitor clicks any WhatsApp CTA: no more pop-ups this session. */
-const DONE_KEY = 'primo:popup-done'
-/** Set while the pop-up is open, so it survives navigating between / and /catalogo. */
+/** Aberto agora: continua aberto ao trocar de página, até a pessoa fechar. */
 const OPEN_KEY = 'primo:popup-open'
+/** Já apareceu uma vez neste navegador: nunca mais aparece. */
+const SEEN_KEY = 'primo:popup-seen'
 
-/** Another dialog, the mobile menu or a scroll lock is active: the pop-up waits. */
+/** Outro diálogo, o menu do celular ou uma trava de rolagem: o balão espera. */
 const BLOCKING_SELECTOR = '[aria-modal="true"], header button[aria-controls][aria-expanded="true"]'
 const WHATSAPP_LINK_SELECTOR = 'a[href*="wa.me/"]'
 const TEXT_ENTRY =
@@ -36,60 +35,57 @@ const TEXT_ENTRY =
   ' textarea, select, [contenteditable=""], [contenteditable="true"]'
 
 /* -------------------------------------------------------------------------- */
-/* Session storage (with an in-memory fallback for private mode)              */
+/* Armazenamento (com memória de reserva para o modo anônimo)                  */
 /* -------------------------------------------------------------------------- */
 
 const memory = new Map<string, string>()
 
-function readStore(key: string): string | null {
+function storage(kind: 'local' | 'session'): Storage | null {
   try {
-    const value = window.sessionStorage.getItem(key)
-    if (value !== null) return value
+    return kind === 'local' ? window.localStorage : window.sessionStorage
   } catch {
-    // sessionStorage indisponível: usa a memória.
+    return null
   }
-  return memory.get(key) ?? null
 }
 
-function writeStore(key: string, value: string) {
-  memory.set(key, value)
+function read(kind: 'local' | 'session', key: string): string | null {
   try {
-    window.sessionStorage.setItem(key, value)
+    const value = storage(kind)?.getItem(key)
+    if (value != null) return value
+  } catch {
+    // indisponível: usa a memória
+  }
+  return memory.get(`${kind}:${key}`) ?? null
+}
+
+function write(kind: 'local' | 'session', key: string, value: string) {
+  memory.set(`${kind}:${key}`, value)
+  try {
+    storage(kind)?.setItem(key, value)
   } catch {
     // ignora
   }
 }
 
-function removeStore(key: string) {
-  memory.delete(key)
+function remove(kind: 'local' | 'session', key: string) {
+  memory.delete(`${kind}:${key}`)
   try {
-    window.sessionStorage.removeItem(key)
+    storage(kind)?.removeItem(key)
   } catch {
     // ignora
   }
 }
 
 function readElapsed(): number {
-  const value = Number.parseInt(readStore(ELAPSED_KEY) ?? '0', 10)
-  if (!Number.isFinite(value) || value < 0) return 0
-  return Math.min(value, WHATSAPP_POPUP.intervalSeconds)
+  const value = Number.parseInt(read('session', ELAPSED_KEY) ?? '0', 10)
+  return Number.isFinite(value) && value > 0 ? Math.min(value, WHATSAPP_POPUP.delaySeconds) : 0
 }
 
-function writeElapsed(seconds: number) {
-  writeStore(ELAPSED_KEY, String(seconds))
-}
-
-function readDone(): boolean {
-  return readStore(DONE_KEY) === '1'
-}
-
-/** Was open when the visitor navigated away (and nothing has stopped it since). */
-function readOpen(): boolean {
-  return !readDone() && readStore(OPEN_KEY) === '1'
-}
+const isOpenStored = () => read('session', OPEN_KEY) === '1'
+const isSeenStored = () => read('local', SEEN_KEY) === '1'
 
 /* -------------------------------------------------------------------------- */
-/* DOM checks                                                                  */
+/* DOM                                                                         */
 /* -------------------------------------------------------------------------- */
 
 function isBlocked(): boolean {
@@ -108,24 +104,22 @@ function isTextEntry(element: Element | null): boolean {
 const subscribeNothing = () => () => {}
 
 /* -------------------------------------------------------------------------- */
-/* Pop-up                                                                      */
+/* Balão                                                                       */
 /* -------------------------------------------------------------------------- */
 
 type WhatsAppPopupProps = {
-  /** The floating WhatsApp button/bar is on screen: sit just above it. */
+  /** O botão principal (pílula no celular, botão redondo no desktop) está na tela. */
   floatVisible?: boolean
-  /** The visitor is typing (mobile keyboard open): stay out of the way. */
+  /** A pessoa está digitando (teclado do celular aberto): a pílula some, o balão também. */
   editing?: boolean
-  /**
-   * The final CTA or the footer is on screen (they carry the same WhatsApp CTA): stay hidden,
-   * and a pop-up that is due waits until the visitor scrolls back up.
-   */
+  /** O CTA final ou o rodapé estão na tela (o botão principal sai de cena): o balão também. */
   suppressed?: boolean
 }
 
 /**
- * Small WhatsApp-style chat bubble shown after every WHATSAPP_POPUP.intervalSeconds of visible
- * time on the site. Client only: nothing is rendered on the server or during hydration.
+ * Balão de mensagem que sai do botão principal "Falar com o Primo", ligado a ele por bolinhas
+ * de pensamento. Aparece uma vez por navegador, depois de WHATSAPP_POPUP.delaySeconds de tela
+ * visível, e não tem botão próprio: o CTA é o botão de onde ele sai. Só existe no cliente.
  */
 export function WhatsAppPopup(props: WhatsAppPopupProps = {}) {
   const hydrated = useSyncExternalStore(
@@ -145,25 +139,21 @@ function PopupController({
   const reduceMotion = useReducedMotion()
   const messageId = useId()
 
-  const [done, setDone] = useState(readDone)
-  const [shown, setShown] = useState(readOpen)
+  const [open, setOpen] = useState(isOpenStored)
+  // Já apareceu antes (e não está aberto agora): não há mais nada a fazer.
+  const [finished, setFinished] = useState(() => isSeenStored() && !isOpenStored())
   const [blocked, setBlocked] = useState(isBlocked)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const returnFocusRef = useRef<HTMLElement | null>(null)
-  const shownRef = useRef(shown)
-  const editingRef = useRef(editing)
-  const suppressedRef = useRef(suppressed)
+  const canShow = floatVisible && !editing && !suppressed
+  const canShowRef = useRef(canShow)
 
   useEffect(() => {
-    editingRef.current = editing
-  }, [editing])
+    canShowRef.current = canShow
+  }, [canShow])
 
-  useEffect(() => {
-    suppressedRef.current = suppressed
-  }, [suppressed])
-
-  /** If focus is inside the pop-up, hand it back to where it came from before it disappears. */
+  /** Se o foco estiver no balão, devolve para onde estava antes de ele sumir. */
   const releaseFocus = useCallback(() => {
     const container = containerRef.current
     const active = document.activeElement
@@ -175,88 +165,79 @@ function PopupController({
     returnFocusRef.current = null
   }, [])
 
-  const hide = useCallback(() => {
+  /** Fecha de vez: nunca mais aparece neste navegador. */
+  const finish = useCallback(() => {
     releaseFocus()
-    shownRef.current = false
-    removeStore(OPEN_KEY)
-    setShown(false)
+    write('local', SEEN_KEY, '1')
+    remove('session', OPEN_KEY)
+    setOpen(false)
+    setFinished(true)
   }, [releaseFocus])
 
   const dismiss = useCallback(
     (method: 'close' | 'escape') => {
-      hide()
-      writeElapsed(0)
+      finish()
       track('whatsapp_popup_dismissed', { location: LOCATION, method, path: window.location.pathname })
     },
-    [hide],
+    [finish],
   )
 
-  // One 1s clock: counts only while the tab is visible and the pop-up is closed.
+  // Relógio de 1 s: conta só com a aba visível, até o balão aparecer pela primeira vez.
   useEffect(() => {
-    if (done) return
+    if (finished || open) return
 
     const timer = window.setInterval(() => {
       const nowBlocked = isBlocked()
       setBlocked(nowBlocked)
-      if (shownRef.current || document.visibilityState !== 'visible') return
+      if (document.visibilityState !== 'visible') return
 
-      const elapsed = Math.min(readElapsed() + 1, WHATSAPP_POPUP.intervalSeconds)
-      if (
-        elapsed >= WHATSAPP_POPUP.intervalSeconds &&
-        !nowBlocked &&
-        !editingRef.current &&
-        !suppressedRef.current
-      ) {
-        writeElapsed(0)
-        writeStore(OPEN_KEY, '1')
-        shownRef.current = true
-        setShown(true)
+      const elapsed = Math.min(readElapsed() + 1, WHATSAPP_POPUP.delaySeconds)
+      write('session', ELAPSED_KEY, String(elapsed))
+
+      // Na hora certa, espera o botão principal estar na tela para sair dele.
+      if (elapsed >= WHATSAPP_POPUP.delaySeconds && !nowBlocked && canShowRef.current) {
+        write('local', SEEN_KEY, '1')
+        write('session', OPEN_KEY, '1')
+        setOpen(true)
         track('whatsapp_popup_shown', { location: LOCATION, path: window.location.pathname })
-        return
       }
-      writeElapsed(elapsed)
     }, 1000)
 
     return () => window.clearInterval(timer)
-  }, [done])
+  }, [finished, open])
 
-  // A dialog opening or a scroll lock (sheet, lightbox, mobile menu) hides it right away.
+  // Um diálogo abrindo ou uma trava de rolagem (ficha, galeria, menu) esconde o balão na hora.
   useEffect(() => {
-    if (done || typeof MutationObserver === 'undefined') return
+    if (finished || typeof MutationObserver === 'undefined') return
     const update = () => setBlocked(isBlocked())
     const observer = new MutationObserver(update)
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] })
     observer.observe(document.body, { childList: true, attributes: true, attributeFilter: ['style'] })
     return () => observer.disconnect()
-  }, [done])
+  }, [finished])
 
-  // Any WhatsApp CTA on the site: stop for the rest of the session.
+  // Qualquer CTA de WhatsApp do site: o balão cumpriu o papel, encerra de vez.
   useEffect(() => {
-    if (done) return
+    if (finished) return
 
-    function stop() {
-      writeStore(DONE_KEY, '1')
-      hide()
-      setDone(true)
-    }
     function onLinkClick(event: MouseEvent) {
-      if (event.target instanceof Element && event.target.closest(WHATSAPP_LINK_SELECTOR)) stop()
+      if (event.target instanceof Element && event.target.closest(WHATSAPP_LINK_SELECTOR)) finish()
     }
 
-    // track('whatsapp_click') fires the event; the click listener covers any untracked wa.me link.
-    window.addEventListener(WHATSAPP_CLICK_EVENT, stop)
+    window.addEventListener(WHATSAPP_CLICK_EVENT, finish)
     document.addEventListener('click', onLinkClick)
     document.addEventListener('auxclick', onLinkClick)
     return () => {
-      window.removeEventListener(WHATSAPP_CLICK_EVENT, stop)
+      window.removeEventListener(WHATSAPP_CLICK_EVENT, finish)
       document.removeEventListener('click', onLinkClick)
       document.removeEventListener('auxclick', onLinkClick)
     }
-  }, [done, hide])
+  }, [finished, finish])
 
-  const visible = shown && !blocked && !done && !suppressed
+  // É uma extensão do botão principal: só aparece junto com ele.
+  const visible = open && !finished && !blocked && floatVisible && !suppressed
 
-  // Esc closes it, unless the key belongs to a text field elsewhere (e.g. clearing the search).
+  // Esc fecha, a não ser que a tecla seja de um campo de texto (ex.: limpar a busca).
   useEffect(() => {
     if (!visible) return
 
@@ -278,10 +259,30 @@ function PopupController({
     }
   }
 
+  // Bolinhas sobem do botão uma a uma; o balão chega por último.
+  const dot: Variants = {
+    hidden: { opacity: 0, scale: reduceMotion ? 1 : 0.3 },
+    shown: (i: number) => ({
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.25, delay: reduceMotion ? 0 : i * 0.14, ease: EASE },
+    }),
+  }
+  const card: Variants = {
+    hidden: reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.96 },
+    shown: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { duration: 0.35, delay: reduceMotion ? 0 : 0.42, ease: EASE },
+    },
+  }
+  // Mesmo acabamento do balão, com a borda um pouco mais clara para não sumir sobre fotos.
+  const dotClass = 'glass absolute rounded-full border border-silver/40 shadow-luxe'
+
   return (
     <>
-      {/* Mounting a non-modal dialog is not announced: this polite region tells screen readers
-          it appeared, without moving focus. */}
+      {/* Um diálogo não modal não é anunciado ao montar: esta região avisa o leitor de tela. */}
       <p className="sr-only" aria-live="polite">
         {visible ? copy.message : ''}
       </p>
@@ -295,59 +296,69 @@ function PopupController({
             aria-modal="false"
             aria-labelledby={messageId}
             onFocus={handleFocus}
-            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.96 }}
-            animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
-            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.98 }}
-            transition={{ duration: reduceMotion ? 0.2 : 0.35, ease: EASE }}
-            className={cn(
-              'fixed left-4 right-4 z-40 mx-auto max-w-[20rem] origin-bottom',
-              'transition-[bottom] duration-300 ease-out motion-reduce:transition-none',
-              // Mobile: just above the bottom WhatsApp bar (min-h-12), or the safe area when it is hidden.
-              floatVisible && !editing
-                ? 'bottom-[calc(max(1rem,env(safe-area-inset-bottom))_+_3.75rem)]'
-                : 'bottom-[max(1rem,env(safe-area-inset-bottom))]',
-              editing && 'max-sm:hidden',
-              // sm and up: bottom-right, just above the round button (size-14).
-              'sm:left-auto sm:right-6 sm:mx-0 sm:w-[20rem] sm:origin-bottom-right lg:right-8',
-              floatVisible ? 'sm:bottom-[5.75rem] lg:bottom-[6.25rem]' : 'sm:bottom-6 lg:bottom-8',
-            )}
+            initial="hidden"
+            animate="shown"
+            exit={{ opacity: 0, transition: { duration: 0.2 } }}
           >
-            <div className="glass relative rounded-3xl border border-border/70 p-3 shadow-luxe-lg sm:rounded-br-lg">
-              <div className="flex items-end gap-2.5 pr-9">
-                <span
-                  aria-hidden="true"
-                  className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gold/40 bg-background/70"
-                >
-                  <Logo className="h-9 w-9" />
-                </span>
-                <p
-                  id={messageId}
-                  className="min-w-0 rounded-2xl rounded-bl-md bg-secondary px-3 py-2 text-sm leading-snug text-bone"
-                >
-                  {copy.message}
-                </p>
-              </div>
-
-              {/* Outline, like the catalog tiles: the solid gold pill stays the float's alone. */}
-              <WhatsAppButton
-                location={LOCATION}
-                message={copy.ctaMessage}
-                size="sm"
-                variant="secondary"
-                className="mt-3 w-full border-gold/30 text-gold-soft hover:border-gold/70 hover:text-bone"
-              >
-                {copy.cta}
-              </WhatsAppButton>
-
-              <button
-                type="button"
-                aria-label={copy.close}
-                onClick={() => dismiss('close')}
-                className="absolute right-1.5 top-1.5 inline-flex size-9 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-accent/60 hover:text-bone focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-soft"
-              >
-                <X aria-hidden="true" className="size-4" />
-              </button>
+            {/* Celular: bolinhas saindo do topo da pílula "Falar com o Primo" (centralizada, h-12). */}
+            <div
+              aria-hidden="true"
+              className={cn(
+                'pointer-events-none fixed left-1/2 z-40 sm:hidden',
+                'bottom-[calc(max(1rem,env(safe-area-inset-bottom))_+_3rem)]',
+              )}
+            >
+              <motion.span custom={0} variants={dot} className={cn(dotClass, 'bottom-1.5 -left-1 size-2')} />
+              <motion.span custom={1} variants={dot} className={cn(dotClass, 'bottom-[1.125rem] left-1 size-3')} />
+              <motion.span custom={2} variants={dot} className={cn(dotClass, 'bottom-[2.125rem] left-3.5 size-4')} />
             </div>
+
+            {/* Desktop: bolinhas subindo em diagonal do botão redondo (size-14, canto inferior direito). */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none fixed bottom-6 right-6 z-40 hidden size-14 sm:block lg:bottom-8 lg:right-8"
+            >
+              <motion.span custom={0} variants={dot} className={cn(dotClass, 'bottom-[calc(100%+2px)] right-[62%] size-2')} />
+              <motion.span custom={1} variants={dot} className={cn(dotClass, 'bottom-[calc(100%+14px)] right-[92%] size-3')} />
+              <motion.span custom={2} variants={dot} className={cn(dotClass, 'bottom-[calc(100%+30px)] right-[124%] size-4')} />
+            </div>
+
+            {/* O balão: mesmo estilo de antes, sem botão (o CTA é o botão de onde ele sai). */}
+            <motion.div
+              variants={card}
+              className={cn(
+                'fixed left-4 right-4 z-40 mx-auto max-w-[19rem] origin-bottom',
+                'bottom-[calc(max(1rem,env(safe-area-inset-bottom))_+_6.5rem)]',
+                'sm:left-auto sm:right-[4.5rem] sm:mx-0 sm:w-[19rem] sm:origin-bottom-right sm:bottom-[8.25rem]',
+                'lg:right-[5rem] lg:bottom-[8.75rem]',
+              )}
+            >
+              <div className="glass relative rounded-3xl border border-border/70 py-3 pl-3 pr-11 shadow-luxe-lg">
+                <div className="flex items-center gap-2.5">
+                  <span
+                    aria-hidden="true"
+                    className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gold/40 bg-background/70"
+                  >
+                    <Logo className="h-9 w-9" />
+                  </span>
+                  <p
+                    id={messageId}
+                    className="min-w-0 rounded-2xl bg-secondary px-3 py-2 text-sm leading-snug text-bone"
+                  >
+                    {copy.message}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  aria-label={copy.close}
+                  onClick={() => dismiss('close')}
+                  className="absolute right-1.5 top-1.5 inline-flex size-9 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-accent/60 hover:text-bone focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-soft"
+                >
+                  <X aria-hidden="true" className="size-4" />
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         ) : null}
       </AnimatePresence>

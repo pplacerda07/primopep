@@ -50,10 +50,11 @@ export const WHATSAPP_NUMBER = '595991636087'
 
 export const WHATSAPP_DEFAULT_MESSAGE = 'Olá, Primo. Quero entender como funciona.'
 
-// Pop-up do WhatsApp: aparece a cada intervalSeconds de tempo no site (só com a aba visível).
-// Único ponto de ajuste do tempo. Textos em COPY.whatsappPopup (lib/content.ts).
+// Pop-up do WhatsApp (balão que sai do botão principal "Falar com o Primo"): aparece UMA vez
+// por navegador, depois de delaySeconds de tela visível no site. Fechou, não volta.
+// Único ponto de ajuste do tempo. Texto em COPY.whatsappPopup (lib/content.ts).
 export const WHATSAPP_POPUP = {
-  intervalSeconds: 30,
+  delaySeconds: 45,
 } as const
 
 export function whatsappLink(message?: string): string {

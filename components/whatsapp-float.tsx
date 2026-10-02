@@ -198,8 +198,8 @@ export function WhatsAppFloat() {
         ) : null}
       </AnimatePresence>
 
-      {/* Chat-bubble nudge every WHATSAPP_POPUP.intervalSeconds, placed just above the float.
-          Like the float, it steps aside while the final CTA or the footer is on screen. */}
+      {/* Balão que sai deste botão (bolinhas de pensamento), uma vez só, após
+          WHATSAPP_POPUP.delaySeconds. Como o botão, sai de cena perto do CTA final e do rodapé. */}
       <WhatsAppPopup floatVisible={visible} editing={editing} suppressed={endInView} />
     </>
   )

@@ -18,7 +18,8 @@ Definidas pelo dono do Primo durante a construção do site (02/10/2026):
 6. **A lista de produtos do site é "Mais buscados", não "catálogo completo".** O catálogo completo do fornecedor é muito maior e é pedido pelo WhatsApp.
 7. **Fotos e vídeos em `public/fonte/` são reais, do fornecedor parceiro.** Sempre apresentá-los como estrutura do fornecedor, nunca como fábrica do Primo. **Nenhuma imagem ou vídeo pode mostrar o rosto de alguém.** No máximo 14 itens: os 8 do bloco da página e mais até 6 na galeria, escolhidos pelos que passam mais credibilidade.
 8. **Protocolo de uso incluso.** Cada peptídeo comprado vem com um protocolo completo em PDF. É um ponto de segurança, não o assunto principal, e sempre aparece com o aviso: "Material informativo. Não substitui a orientação de um profissional de saúde."
-9. **Pop-up do WhatsApp.** A cada 30 segundos no site aparece "Não achou o que procura? Fala com o Primo."
+9. **Balão do WhatsApp.** Aparece **uma vez só**, depois de 45 s no site, com "Não achou o que procura? Fala com o Primo.". É uma extensão do botão principal "Falar com o Primo": sai dele por bolinhas de pensamento e **não tem botão próprio**. Fechou, não volta.
+10. **"Mais buscados" em lista.** Cada item mostra só o nome e uma descrição neutra de 7 palavras, sem botão "Consultar", sem "mg" e sem "A confirmar". O item abre a ficha do produto.
 10. **Reenvio gratuito incluso.** A política de reenvio do Primo já está no preço final: se algo acontecer com o envio, o reenvio é gratuito. Dizer isso de forma clara e curta, sem inventar condições nem números.
 
 ---

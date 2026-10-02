@@ -318,12 +318,11 @@ export const COPY = {
     message: 'Olá, Primo. Quero entender como funciona.',
   },
 
-  // Pop-up estilo balão de conversa (tempo em WHATSAPP_POPUP, lib/site.ts).
+  // Balão que sai do botão principal "Falar com o Primo" (tempo em WHATSAPP_POPUP, lib/site.ts).
+  // Sem botão próprio: o CTA é o botão de onde ele sai.
   whatsappPopup: {
     // Texto do balão; também rotula o pop-up (aria-labelledby).
     message: 'Não achou o que procura? Fala com o Primo.',
-    cta: 'Falar com o Primo',
-    ctaMessage: 'Olá, Primo. Não achei o que procurava no site.',
     // aria-label do botão X.
     close: 'Fechar mensagem do Primo',
   },

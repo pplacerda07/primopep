@@ -1,8 +1,7 @@
 'use client'
 
-import { ArrowLeft, ChevronDown, Search, X } from 'lucide-react'
+import { ArrowLeft, ChevronDown, ChevronRight, Search, X } from 'lucide-react'
 import { motion } from 'motion/react'
-import Image from 'next/image'
 import {
   useEffect,
   useId,
@@ -24,7 +23,6 @@ import {
   FAMILIES,
   STATUS_LABEL,
   getProductsByFamily,
-  productWhatsappMessage,
   searchProducts,
   startingPriceUSD,
   type FamilyId,
@@ -47,13 +45,6 @@ const HEADING_ID = 'catalogo-titulo'
 const LIST_ID = 'catalogo-lista'
 
 const LABELS = COPY.featured.labels
-
-// 'Apresentação a confirmar' becomes 'A confirmar' (same as ProductCard): in the tile the
-// line is already the presentation one. Screen readers still get the full label.
-const TBD_SHORT = (() => {
-  const text = LABELS.presentationTbd.replace(/^apresentação\s+/i, '')
-  return text.charAt(0).toUpperCase() + text.slice(1)
-})()
 
 const subscribeNoop = () => () => {}
 
@@ -368,10 +359,10 @@ export function Catalog({ variant = 'section' }: { variant?: Variant }) {
             <ul
               role="list"
               aria-labelledby={HEADING_ID}
-              className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"
+              className="grid grid-cols-2 gap-x-5 border-t border-border/50 sm:gap-x-8 lg:grid-cols-3"
             >
               {visible.map((product) => (
-                <ProductTile
+                <ProductRow
                   key={product.slug}
                   product={product}
                   headingLevel={productHeading}
@@ -470,7 +461,8 @@ function FilterChip({
   )
 }
 
-function ProductTile({
+/** Linha da lista: nome + descrição de 7 palavras. A linha inteira abre a ficha do produto. */
+function ProductRow({
   product,
   headingLevel: Heading,
   animate,
@@ -482,87 +474,42 @@ function ProductTile({
   onOpen: OpenHandler
 }) {
   const copy = COPY.catalog
-  const { presentations } = product
-  const single = presentations.length === 1 ? presentations[0] : undefined
   const hasPrice = startingPriceUSD(product) !== null
-  const presentation =
-    presentations.length > 0 ? (
-      presentations.map((item) => item.label).join(' · ')
-    ) : (
-      <>
-        <span aria-hidden="true">{TBD_SHORT}</span>
-        <span className="sr-only">{LABELS.presentationTbd}</span>
-      </>
-    )
 
   return (
     <motion.li
       initial={animate ? { opacity: 0, y: 6 } : false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: EASE }}
-      className={cn(
-        'group relative flex flex-col rounded-2xl border border-border/60 bg-card/40 p-3 sm:p-4',
-        'transition-colors duration-200 hover:border-gold/35 hover:bg-card/70',
-      )}
+      className="group relative border-b border-border/50"
     >
-      {/* O tile inteiro abre os detalhes; o botão de consulta fica por cima (z-2). */}
       <button
         type="button"
         onClick={(event) => onOpen(product, event.currentTarget)}
         aria-haspopup="dialog"
         aria-label={fill(copy.detailsAria, { product: product.name })}
-        className="absolute inset-0 z-[1] cursor-pointer rounded-2xl"
+        className="absolute inset-0 z-[1] cursor-pointer rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-soft"
       />
 
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <Heading className="break-words text-sm font-semibold leading-snug text-foreground transition-colors duration-200 group-hover:text-gold-soft">
+      <div className="flex items-start gap-2 py-3.5 sm:gap-3 sm:py-4">
+        <div className="min-w-0 flex-1">
+          <Heading className="break-words text-sm font-semibold leading-snug text-foreground transition-colors duration-200 group-hover:text-gold-soft sm:text-[0.9375rem]">
             {product.name}
           </Heading>
-          <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{presentation}</p>
+          <p className="mt-1 text-xs leading-snug text-muted-foreground sm:text-sm">{product.summary}</p>
           {product.status !== 'sob-consulta' ? (
-            <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{STATUS_LABEL[product.status]}</p>
+            <p className="mt-1 text-xs leading-snug text-muted-foreground">{STATUS_LABEL[product.status]}</p>
+          ) : null}
+          {hasPrice ? (
+            <p className="mt-1.5 text-sm font-semibold leading-snug text-foreground">
+              <PriceText product={product} />
+            </p>
           ) : null}
         </div>
-        {product.image ? (
-          <Image
-            src={product.image}
-            alt=""
-            width={40}
-            height={80}
-            className="h-10 w-5 shrink-0 rounded-md object-cover"
-          />
-        ) : null}
-      </div>
-
-      {/* Price only when set: 'sob consulta' is what the Consultar button already says. */}
-      {hasPrice ? (
-        <p className="mt-auto pt-3 text-sm font-semibold leading-snug text-foreground">
-          <PriceText product={product} />
-        </p>
-      ) : null}
-
-      <div
-        className={cn('relative z-[2]', hasPrice ? 'mt-2' : 'mt-auto pt-3')}
-        onClick={() =>
-          track('sku_consult', {
-            product: product.slug,
-            presentation: single?.label,
-            location: 'catalog',
-          })
-        }
-      >
-        <WhatsAppButton
-          location="catalog"
-          product={product.slug}
-          message={productWhatsappMessage(product, single)}
-          variant="secondary"
-          size="sm"
-          className="w-full gap-1.5 border-gold/30 px-2 text-gold-soft hover:border-gold/70 hover:text-bone"
-        >
-          <span aria-hidden="true">{copy.consult}</span>
-          <span className="sr-only">{fill(copy.consultAria, { product: product.name })}</span>
-        </WhatsAppButton>
+        <ChevronRight
+          aria-hidden="true"
+          className="mt-0.5 size-4 shrink-0 text-muted-foreground/60 transition duration-200 group-hover:translate-x-0.5 group-hover:text-gold-soft"
+        />
       </div>
     </motion.li>
   )
