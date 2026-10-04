@@ -45,7 +45,7 @@
 
   --animate-float: float 6s ease-in-out infinite;
   --animate-float-slow: float 9s ease-in-out infinite;
-  --animate-marquee: marquee 40s linear infinite;
+  --animate-marquee: marquee 88s linear infinite;
 }
 
 :root {
@@ -201,7 +201,9 @@
   }
 }
 
-/* Seamless strip: render the content twice inside the animated track. */
+/* Seamless strip: the track holds two identical copies, so -50% is exactly one copy.
+   It never pauses (no hover, focus or touch rule). 88s is only the pre-measure fallback:
+   components/conditions-strip.tsx retimes the running animation to a constant 45 px/s. */
 @keyframes marquee {
   from {
     transform: translate3d(0, 0, 0);
@@ -209,12 +211,6 @@
   to {
     transform: translate3d(-50%, 0, 0);
   }
-}
-
-/* Hovering (or focusing inside) a marquee track pauses it. */
-.animate-marquee:hover,
-.animate-marquee:focus-within {
-  animation-play-state: paused;
 }
 
 /* ------------------------------------------------------------------ */

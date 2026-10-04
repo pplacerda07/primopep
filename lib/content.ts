@@ -74,31 +74,38 @@ export const COPY = {
     // h1 da página. highlight = trecho do title em dourado.
     title: 'O Primo conhece a fonte.',
     highlight: 'a fonte',
-    subtitle: 'Acesso direto ao fornecedor internacional parceiro. O Primo acompanha seu pedido até a entrega.',
+    // Pedido do cliente: "fornecedor do Primo" (não "fornecedor parceiro"). Uma frase, "Primo" uma vez.
+    subtitle: 'Acesso direto ao fornecedor do Primo, com acompanhamento até a entrega.',
     primaryCta: 'Ver produtos',
     secondaryCta: 'Falar com o Primo',
     secondaryCtaMessage: 'Olá, Primo. Quero entender como funciona.',
     map: {
       originLabel: 'Hong Kong',
-      originCaption: 'Fornecedor parceiro',
+      // Só 'Fornecedor': faz par com 'Você' e não repete 'Primo' nem 'parceiro' no hero.
+      originCaption: 'Fornecedor',
       destinationLabel: 'Brasil',
       destinationCaption: 'Você',
+      // Descreve o objeto que viaja: a caixinha de ampolas das fotos (regra 13 do cliente).
       ariaLabel:
-        'Mapa-múndi pontilhado com a rota de envio: do fornecedor parceiro, em Hong Kong, na China, até você, no Brasil.',
+        'Mapa-múndi pontilhado: uma caixinha de ampolas viaja do fornecedor, em Hong Kong, na China, até você, no Brasil.',
     },
   },
 
-  // Faixa de condições (só fatos, frases curtas).
+  // Faixa rolante sob o hero: vantagens de pedir com o Primo (2 a 5 palavras cada).
+  // Detalhes operacionais (frete, prazo, caixa com 10 vials) ficam no FAQ e na ficha.
+  // Sem o protocolo aqui: ele sempre vem com PROTOCOL_NOTE, e um item da faixa não leva aviso.
+  // Não repetir palavras da frase do hero logo acima (direto, entrega, acompanhamento).
   conditions: {
-    ariaLabel: 'Condições comerciais',
-    // Botão de pausa da faixa rolante (alternância com aria-pressed).
-    pauseLabel: 'Pausar a faixa de condições',
+    // Título sr-only da faixa (ela nunca pausa e não tem botão de pausa).
+    ariaLabel: 'Vantagens de pedir com o Primo',
+    // Exatamente 6 itens. Evite repetir a mesma palavra em itens vizinhos.
     items: [
-      `Caixas com ${vialsPerBox} vials`,
-      `Frete ${SHIPPING} por pedido`,
-      `${LEAD_TIME} após o despacho`,
-      'Rastreio do envio',
+      'Preço direto da fonte',
+      'Orçamento sem compromisso',
       RESEND,
+      'Atendimento pessoal no WhatsApp',
+      'Catálogo amplo sob pedido',
+      'Rastreio desde o despacho',
     ],
   },
 
@@ -238,17 +245,23 @@ export const COPY = {
   productSheet: {
     dialogLabel: 'Detalhes do produto',
     choosePresentation: 'Escolha a apresentação',
-    presentationTbd: 'Apresentação a confirmar',
-    box: 'Caixa com {n} vials',
-    price: 'Preço por caixa',
-    priceOnRequest: 'Preço sob consulta',
-    brlRef: '≈ {brl} (referência)',
     cta: 'Consultar no WhatsApp',
-    note: 'Disponibilidade e orçamento confirmados antes do pagamento.',
-    shippingNote: `Frete de ${SHIPPING} por pedido. Tributos à parte.`,
-    // Perto do preço / da caixa.
+    // Nota junto da linha de apresentação. A ficha não mostra preço nem disponibilidade (regra 11).
     resend: 'Reenvio gratuito incluso no preço',
     close: 'Fechar',
+    // Título do parágrafo product.description (lib/catalog.ts).
+    aboutTitle: 'Como age',
+    // Rótulo de product.category (sr-only / aria).
+    categoryLabel: 'Categoria',
+    // Linha da apresentação única. {dose} = presentation.label ('30 mg');
+    // {vials} = texto completo da caixa ('10 vials'):
+    // fill(presentationLine, { dose: p.label, vials: `${p.vials} vials` }).
+    // Sem apresentação, a ficha omite a linha (nada de "a confirmar").
+    presentationLine: '{dose} por vial · caixa com {vials}',
+    // Aviso fixo junto de "Como age" (resumo da observação geral do cliente).
+    // Não repete PROTOCOL_NOTE, que já aparece na ficha junto do protocolo.
+    disclaimer:
+      'Conteúdo informativo sobre mecanismos e linhas de pesquisa. Em compostos investigacionais, as evidências podem ser limitadas ou insuficientes para confirmar eficácia e segurança.',
   },
 
   faq: {

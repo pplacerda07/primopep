@@ -104,7 +104,7 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Dotted world map: the ampoule travels Hong Kong -> Brasil. Full-bleed on phones. */}
+          {/* Dotted world map: the ampoule box (clear case + vials) travels Hong Kong -> Brasil. Full-bleed on phones. */}
           <div
             className={cn(
               'relative -mx-4 overflow-x-clip sm:-mx-6',

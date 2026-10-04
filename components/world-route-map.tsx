@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, type RefObject } from 'react'
 import { animate, useInView, useReducedMotion } from 'motion/react'
 import { cn } from '@/lib/utils'
+import { BOX_GROUND_Y, BOX_WIDTH, RouteBox, RouteBoxBackdrop, RouteBoxDefs } from '@/components/route-box'
 import {
   BRAZIL_DOTS_PATH,
   CHINA_DOTS_PATH,
@@ -52,14 +53,6 @@ function pointAt(t: number): MapPoint {
   }
 }
 
-function tangentAt(t: number): MapPoint {
-  const u = 1 - t
-  return {
-    x: 3 * u * u * (C1.x - P0.x) + 6 * u * t * (C2.x - C1.x) + 3 * t * t * (P3.x - C2.x),
-    y: 3 * u * u * (C1.y - P0.y) + 6 * u * t * (C2.y - C1.y) + 3 * t * t * (P3.y - C2.y),
-  }
-}
-
 /** Cumulative arc length lookup, so motion along the arc is uniform and matches the trail. */
 const LUT_STEPS = 160
 const LENGTHS: number[] = (() => {
@@ -98,14 +91,24 @@ const TRAVEL_START = 0.08
 const TRAVEL_END = 0.64
 const STATIC_PROGRESS = 0.65
 
+/** Gentle bob while travelling: whole cycles per loop, height in box units. */
+const BOB_CYCLES = 7
+const BOB_UNITS = 2.4
+/** The box stays upright, leaning only a few degrees into the direction of travel (west) at full speed. */
+const MAX_TILT_DEG = 3.5
+
 type Frame = {
-  /** Ampoule position along the arc (0..1 of its length). */
+  /** Box position along the arc (0..1 of its length). */
   progress: number
   /** Drawn portion of the gold trail (0..1). */
   trail: number
   trailOpacity: number
-  vialOpacity: number
-  vialScale: number
+  boxOpacity: number
+  boxScale: number
+  /** Vertical bob of the box, -1 (down) .. 1 (up). */
+  bob: number
+  /** Lean of the box in degrees (negative leans west). */
+  tilt: number
   originPulse: number
   arrivalPulse: number
   arrivalEcho: number
@@ -116,11 +119,14 @@ type Frame = {
 const clamp01 = (n: number) => Math.min(Math.max(n, 0), 1)
 const segment = (p: number, from: number, to: number) => clamp01((p - from) / (to - from))
 const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+/** Derivative of easeInOutCubic, normalized to 0..1 (peaks at mid-flight). */
+const easeInOutCubicSpeed = (t: number) => (t < 0.5 ? 4 * t * t : Math.pow(2 - 2 * t, 2))
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
 const easeInCubic = (t: number) => t * t * t
 
 function frameAt(p: number): Frame {
-  const progress = easeInOutCubic(segment(p, TRAVEL_START, TRAVEL_END))
+  const travel = segment(p, TRAVEL_START, TRAVEL_END)
+  const progress = easeInOutCubic(travel)
   const appear = easeOutCubic(segment(p, 0.015, 0.1))
   const vanish = easeInCubic(segment(p, TRAVEL_END - 0.005, TRAVEL_END + 0.07))
   const flashIn = segment(p, TRAVEL_END - 0.02, TRAVEL_END + 0.03)
@@ -130,8 +136,10 @@ function frameAt(p: number): Frame {
     progress,
     trail: progress,
     trailOpacity: progress > 0.002 ? 1 - segment(p, 0.84, 0.97) : 0,
-    vialOpacity: appear * (1 - vanish),
-    vialScale: (0.55 + 0.45 * appear) * (1 - 0.5 * vanish),
+    boxOpacity: appear * (1 - vanish),
+    boxScale: (0.55 + 0.45 * appear) * (1 - 0.5 * vanish),
+    bob: Math.sin(p * Math.PI * 2 * BOB_CYCLES) * Math.sin(Math.PI * travel),
+    tilt: -MAX_TILT_DEG * easeInOutCubicSpeed(travel),
     originPulse: segment(p, 0, 0.2),
     arrivalPulse: segment(p, TRAVEL_END - 0.015, TRAVEL_END + 0.19),
     arrivalEcho: segment(p, TRAVEL_END + 0.05, TRAVEL_END + 0.26),
@@ -141,13 +149,15 @@ function frameAt(p: number): Frame {
 
 const INITIAL_FRAME = frameAt(0)
 
-/** Reduced motion: full trail, ampoule resting ~65% along the arc, nothing looping. */
+/** Reduced motion: full trail, box resting upright ~65% along the arc, nothing looping. */
 const STATIC_FRAME: Frame = {
   progress: STATIC_PROGRESS,
   trail: 1,
   trailOpacity: 1,
-  vialOpacity: 1,
-  vialScale: 1,
+  boxOpacity: 1,
+  boxScale: 1,
+  bob: 0,
+  tilt: 0,
   originPulse: 0,
   arrivalPulse: 0,
   arrivalEcho: 0,
@@ -155,19 +165,19 @@ const STATIC_FRAME: Frame = {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Responsive sizing: strokes and the ampoule keep a pleasant on-screen size   */
+/* Responsive sizing: strokes and the box keep a pleasant on-screen size       */
 /* whatever the rendered width of the map.                                     */
 /* -------------------------------------------------------------------------- */
 
-const VIAL_LENGTH = 64 // svg units, see <MapAmpoule />
 const DEFAULT_WIDTH = 860
 
-type Layout = { k: number; vialScale: number }
+type Layout = { k: number; boxScale: number }
 
 function layoutFor(width: number): Layout {
   const unitPx = width / MAP_WIDTH
-  const vialPx = Math.min(Math.max(width * 0.056, 30), 50)
-  return { k: 1 / unitPx, vialScale: vialPx / (VIAL_LENGTH * unitPx) }
+  // ~26px wide on a 375px phone (the map is drawn at 125% there), up to 34px on desktop.
+  const boxPx = Math.min(Math.max(15 + width * 0.023, 22), 34)
+  return { k: 1 / unitPx, boxScale: boxPx / (BOX_WIDTH * unitPx) }
 }
 
 const DEFAULT_LAYOUT = layoutFor(DEFAULT_WIDTH)
@@ -177,14 +187,14 @@ const px = (value: number, layout: Layout) => Math.round(value * layout.k * 100)
 const DOT_CLASS = '[stroke-width:7.4] sm:[stroke-width:6.4] lg:[stroke-width:5.8]'
 
 const DEFAULT_ARIA_LABEL =
-  'Mapa-múndi em pontos: uma ampola sai do fornecedor parceiro em Hong Kong e viaja até o Brasil.'
+  'Mapa-múndi em pontos: uma caixinha de ampolas sai do fornecedor parceiro em Hong Kong e viaja até o Brasil.'
 
 /* -------------------------------------------------------------------------- */
 
 export function WorldRouteMap({
   className,
   originLabel = 'Hong Kong',
-  originCaption = 'Fornecedor parceiro',
+  originCaption = 'Fornecedor',
   destinationLabel = 'Brasil',
   destinationCaption = 'Você',
   ariaLabel,
@@ -200,7 +210,9 @@ export function WorldRouteMap({
   const trailRef = useRef<SVGGElement>(null)
   const trailGlowRef = useRef<SVGPathElement>(null)
   const trailCoreRef = useRef<SVGPathElement>(null)
-  const vialRef = useRef<SVGGElement>(null)
+  const boxRef = useRef<SVGGElement>(null)
+  const boxBodyRef = useRef<SVGGElement>(null)
+  const boxGroundRef = useRef<SVGGElement>(null)
   const flashRef = useRef<SVGPathElement>(null)
   const glowRef = useRef<SVGCircleElement>(null)
   const originRingRef = useRef<HTMLSpanElement>(null)
@@ -216,20 +228,30 @@ export function WorldRouteMap({
     frameRef.current = frame
     const layout = layoutRef.current
 
-    const vial = vialRef.current
-    if (vial) {
-      const t = tAtDistance(frame.progress)
-      const point = pointAt(t)
-      const tangent = tangentAt(t)
-      // The ampoule is drawn cap-first pointing left (the arc always travels west).
-      let rotation = (Math.atan2(tangent.y, tangent.x) * 180) / Math.PI - 180
-      if (rotation <= -180) rotation += 360
-      const scale = frame.vialScale * layout.vialScale
-      vial.setAttribute(
+    const box = boxRef.current
+    if (box) {
+      // The box never follows the path tangent: it stays upright and only bobs and leans a little.
+      const point = pointAt(tAtDistance(frame.progress))
+      const scale = frame.boxScale * layout.boxScale
+      box.setAttribute(
         'transform',
-        `translate(${point.x.toFixed(1)} ${point.y.toFixed(1)}) rotate(${rotation.toFixed(2)}) scale(${scale.toFixed(3)})`
+        `translate(${point.x.toFixed(1)} ${point.y.toFixed(1)}) scale(${scale.toFixed(3)})`
       )
-      vial.style.opacity = frame.vialOpacity.toFixed(3)
+      box.style.opacity = frame.boxOpacity.toFixed(3)
+    }
+    if (boxBodyRef.current) {
+      boxBodyRef.current.setAttribute(
+        'transform',
+        `translate(0 ${(-frame.bob * BOB_UNITS).toFixed(2)}) rotate(${frame.tilt.toFixed(2)})`
+      )
+    }
+    if (boxGroundRef.current) {
+      // The glow under the box tightens and fades a touch as the box rises.
+      boxGroundRef.current.setAttribute(
+        'transform',
+        `translate(0 ${BOX_GROUND_Y}) scale(${(1 - 0.1 * frame.bob).toFixed(3)})`
+      )
+      boxGroundRef.current.style.opacity = (1 - 0.25 * frame.bob).toFixed(3)
     }
 
     const offset = (DASH - frame.trail * ROUTE_LENGTH).toFixed(1)
@@ -245,7 +267,7 @@ export function WorldRouteMap({
     paintRing(arrivalEchoRef.current, frame.arrivalEcho, 4.2)
   }, [])
 
-  // Keep strokes and the ampoule at a consistent on-screen size.
+  // Keep strokes and the box at a consistent on-screen size.
   useEffect(() => {
     const wrapper = wrapperRef.current
     if (!wrapper) return
@@ -312,7 +334,7 @@ export function WorldRouteMap({
     ariaLabel ??
     (originLabel === 'Hong Kong' && destinationLabel === 'Brasil'
       ? DEFAULT_ARIA_LABEL
-      : `Mapa-múndi em pontos: uma ampola sai de ${originLabel} (${originCaption}) e viaja até ${destinationLabel} (${destinationCaption}).`)
+      : `Mapa-múndi em pontos: uma caixinha de ampolas sai de ${originLabel} (${originCaption}) e viaja até ${destinationLabel} (${destinationCaption}).`)
 
   return (
     <div
@@ -355,7 +377,7 @@ export function WorldRouteMap({
         />
       </svg>
 
-      {/* Animated layer: arrival glow, Brazil highlight, gold trail, ampoule. */}
+      {/* Animated layer: arrival glow, Brazil highlight, gold trail, box. */}
       <svg
         viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
         className="pointer-events-none absolute inset-0 h-full w-full"
@@ -380,7 +402,7 @@ export function WorldRouteMap({
             <stop offset="45%" stopColor="#c79638" stopOpacity="0.85" />
             <stop offset="100%" stopColor="#f0d28a" />
           </linearGradient>
-          <MapAmpouleDefs id={id} />
+          <RouteBoxDefs id={id} />
         </defs>
 
         <circle
@@ -422,8 +444,11 @@ export function WorldRouteMap({
           />
         </g>
 
-        <g ref={vialRef} transform={`translate(${P0.x} ${P0.y})`} style={{ opacity: 0 }}>
-          <MapAmpoule id={id} />
+        <g ref={boxRef} transform={`translate(${P0.x} ${P0.y})`} style={{ opacity: 0 }}>
+          <RouteBoxBackdrop id={id} groundRef={boxGroundRef} />
+          <g ref={boxBodyRef}>
+            <RouteBox id={id} />
+          </g>
         </g>
       </svg>
 
@@ -530,69 +555,5 @@ function RouteMarker({ point, tone, placement, label, caption, ringRefs }: Route
         <span className="mt-0.5 block text-[11px] leading-tight text-muted-foreground sm:text-xs">{caption}</span>
       </span>
     </div>
-  )
-}
-
-/* -------------------------------------------------------------------------- */
-/* The ampoule travelling on the map: same language as <Vial /> (amber glass,  */
-/* matte silver band, aluminium cap, thin gold ring), drawn horizontally,      */
-/* cap first, centered on (0, 0), ~64 units long.                              */
-/* -------------------------------------------------------------------------- */
-
-function MapAmpouleDefs({ id }: { id: (name: string) => string }) {
-  return (
-    <>
-      <radialGradient id={id('vial-glow')}>
-        <stop offset="0%" stopColor="#e1bb68" stopOpacity="0.45" />
-        <stop offset="45%" stopColor="#c79638" stopOpacity="0.16" />
-        <stop offset="100%" stopColor="#c79638" stopOpacity="0" />
-      </radialGradient>
-      <linearGradient id={id('vial-amber')} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#c27b2f" />
-        <stop offset="35%" stopColor="#9a521a" />
-        <stop offset="72%" stopColor="#62300e" />
-        <stop offset="100%" stopColor="#2a1305" />
-      </linearGradient>
-      <linearGradient id={id('vial-alu')} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#f2f3f5" />
-        <stop offset="45%" stopColor="#c4c7cb" />
-        <stop offset="100%" stopColor="#686b70" />
-      </linearGradient>
-      <linearGradient id={id('vial-band')} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#f0f1f3" />
-        <stop offset="50%" stopColor="#c9ccd0" />
-        <stop offset="100%" stopColor="#84878c" />
-      </linearGradient>
-      <linearGradient id={id('vial-gold')} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#f0d28a" />
-        <stop offset="55%" stopColor="#c79638" />
-        <stop offset="100%" stopColor="#8f6825" />
-      </linearGradient>
-    </>
-  )
-}
-
-function MapAmpoule({ id }: { id: (name: string) => string }) {
-  return (
-    <>
-      <circle r="46" fill={`url(#${id('vial-glow')})`} />
-      {/* flip-off top + crimp collar */}
-      <rect x="-32" y="-8.5" width="6" height="17" rx="2.4" fill={`url(#${id('vial-alu')})`} />
-      <rect x="-28" y="-10.5" width="10.5" height="21" rx="1.8" fill={`url(#${id('vial-alu')})`} />
-      <rect x="-24" y="-10.5" width="0.8" height="21" fill="#000" opacity="0.18" />
-      {/* gold ring */}
-      <rect x="-18.6" y="-9.5" width="2.4" height="19" rx="1" fill={`url(#${id('vial-gold')})`} />
-      {/* neck, shoulder and amber body */}
-      <path
-        d="M-16.4 -6H-12C-8.5 -6 -8.5 -11 -4 -11H28Q32 -11 32 -7V7Q32 11 28 11H-4C-8.5 11 -8.5 6 -12 6H-16.4Z"
-        fill={`url(#${id('vial-amber')})`}
-      />
-      {/* matte silver label band with a gold hairline */}
-      <rect x="1" y="-11" width="21" height="22" fill={`url(#${id('vial-band')})`} />
-      <rect x="11" y="-11" width="1" height="22" fill={`url(#${id('vial-gold')})`} opacity="0.9" />
-      {/* glass glint + thicker base */}
-      <rect x="-5" y="-8.6" width="34" height="1.8" rx="0.9" fill="#fff" opacity="0.38" />
-      <path d="M27 -11H28Q32 -11 32 -7V7Q32 11 28 11H27Z" fill="#000" opacity="0.28" />
-    </>
   )
 }

@@ -2,9 +2,11 @@
 // Sem 'use client' de propósito: renderiza no servidor quando usado sem onOpen e vira
 // componente de cliente quando importado por um (ex.: FeaturedProducts).
 //
-// Mostra só o essencial: vial, família, nome, apresentação, preço (só quando definido) e uma
-// ação (Consultar, em contorno: o dourado sólido fica para o WhatsApp flutuante).
-// O resto (resumo, caixa, protocolo, referência em reais) fica no ProductSheet.
+// Mostra só o essencial: foto real da caixa, nome, resumo de 7 palavras, preço (só quando
+// definido) e uma ação (Consultar, em contorno: o dourado sólido fica para o WhatsApp
+// flutuante). O resto (como age, apresentação, protocolo) fica no ProductSheet.
+// Nada acima do nome: sem selo de família no estilo eyebrow (regra 3 do cliente).
+// A foto é só vitrine: não amplia, não é link e não tem zoom no hover.
 
 import { useId } from 'react'
 import { Vial } from '@/components/vial'
@@ -14,7 +16,6 @@ import {
   getFamily,
   productWhatsappMessage,
   startingPriceUSD,
-  type Family,
   type FamilyTone,
   type Product,
 } from '@/lib/catalog'
@@ -22,21 +23,11 @@ import { COPY, fill } from '@/lib/content'
 import { formatUSD } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
-// Tom de cada família: ponto ao lado do nome da família e brilho atrás do vial.
-export const TONE_STYLES: Record<FamilyTone, { dot: string; glow: string }> = {
-  gold: { dot: 'bg-gold', glow: 'rgba(199, 150, 56, 0.24)' },
-  silver: { dot: 'bg-silver', glow: 'rgba(177, 179, 183, 0.18)' },
-  bronze: { dot: 'bg-[#b9835a]', glow: 'rgba(185, 131, 90, 0.22)' },
-}
-
-// Nome da família em caixa normal, com o ponto do tom.
-export function FamilyChip({ family, className }: { family: Family; className?: string }) {
-  return (
-    <span className={cn('inline-flex max-w-full items-center gap-1.5 text-xs text-muted-foreground', className)}>
-      <span aria-hidden="true" className={cn('size-1.5 shrink-0 rounded-full', TONE_STYLES[family.tone].dot)} />
-      <span className="truncate">{family.label}</span>
-    </span>
-  )
+// Tom de cada família: brilho atrás do vial (quando não há foto).
+export const TONE_STYLES: Record<FamilyTone, { glow: string }> = {
+  gold: { glow: 'rgba(199, 150, 56, 0.24)' },
+  silver: { glow: 'rgba(177, 179, 183, 0.18)' },
+  bronze: { glow: 'rgba(185, 131, 90, 0.22)' },
 }
 
 // Brilho radial no tom da família (decorativo). Posicione o pai como relative.
@@ -53,13 +44,51 @@ export function ToneGlow({ tone, className }: { tone: FamilyTone; className?: st
   )
 }
 
-const LABELS = COPY.featured.labels
+// Fotos dos produtos (public/peptideos): 960 × 720, 4:3.
+const PHOTO_WIDTH = 960
+const PHOTO_HEIGHT = 720
 
-// 'Apresentação a confirmar' → 'A confirmar': no card a linha já é a da apresentação.
-const TBD_SHORT = (() => {
-  const text = LABELS.presentationTbd.replace(/^apresentação\s+/i, '')
-  return text.charAt(0).toUpperCase() + text.slice(1)
-})()
+// Foto real do produto preenchendo o pai (que define tamanho, cantos e overflow-hidden).
+// Só vitrine: sem link, sem zoom, sem arrastar. Borda interna sutil e um degradê leve no
+// terço de baixo (sem escurecer o pó branco e o vial solto da foto).
+export function ProductPhoto({
+  src,
+  eager = false,
+  className,
+}: {
+  src: string
+  /** true na ficha (abre por clique, a foto precisa vir na hora); no card fica lazy. */
+  eager?: boolean
+  className?: string
+}) {
+  return (
+    <>
+      <img
+        src={src}
+        alt=""
+        width={PHOTO_WIDTH}
+        height={PHOTO_HEIGHT}
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
+        draggable={false}
+        className={cn(
+          'pointer-events-none absolute inset-0 size-full select-none object-cover object-[50%_45%]',
+          className,
+        )}
+      />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-card/45 to-transparent"
+      />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-inset ring-white/10"
+      />
+    </>
+  )
+}
+
+const LABELS = COPY.featured.labels
 
 export function ProductCard({
   product,
@@ -81,7 +110,6 @@ export function ProductCard({
 
   const price = startingPriceUSD(product)
   const pricedCount = presentations.filter((item) => item.priceUSD !== null).length
-  const presentationText = presentations.length > 0 ? presentations.map((item) => item.label).join(' · ') : null
   // Só pré-preenche a apresentação na mensagem quando não há escolha a fazer.
   const onlyPresentation = presentations.length === 1 ? presentations[0] : undefined
 
@@ -97,53 +125,34 @@ export function ProductCard({
     <article
       aria-labelledby={titleId}
       className={cn(
-        'group relative flex h-full flex-col rounded-2xl border border-border/60 glass p-2',
+        'group relative flex h-full flex-col rounded-2xl border border-border/60 glass p-1.5 sm:p-2',
         'transition-colors duration-300 hover:border-gold/40',
       )}
     >
-      {/* Vitrine: foto real quando houver; senão, o vial desenhado. */}
-      <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl bg-background/50 sm:aspect-[5/4]">
-        <ToneGlow
-          tone={family.tone}
-          className="w-[80%] opacity-80 transition-opacity duration-500 group-hover:opacity-100"
-        />
-
+      {/* Vitrine 4:3: foto real da caixa; sem foto, o vial desenhado. */}
+      <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl bg-background/50">
         {product.image ? (
-          <img
-            src={product.image}
-            alt=""
-            width={480}
-            height={480}
-            loading="lazy"
-            decoding="async"
-            className="relative h-[78%] w-auto max-w-[78%] object-contain"
-          />
+          <ProductPhoto src={product.image} />
         ) : (
-          <Vial
-            label={product.name}
-            sublabel={presentations[0]?.label ?? ''}
-            className="relative w-12 transition-transform duration-500 ease-out motion-safe:group-hover:-translate-y-1 sm:w-16 lg:w-[4.5rem]"
-          />
+          <>
+            <ToneGlow tone={family.tone} className="w-[80%] opacity-80" />
+            <Vial
+              label={product.name}
+              sublabel={presentations[0]?.label ?? ''}
+              className="relative w-10 sm:w-12 lg:w-14"
+            />
+          </>
         )}
       </div>
 
-      <div className="flex flex-1 flex-col px-1.5 pb-1 pt-3 sm:px-2">
-        <FamilyChip family={family} />
+      <div className="flex flex-1 flex-col px-1.5 pb-1 pt-2.5 sm:px-2 sm:pt-3">
         <Heading
           id={titleId}
-          className="mt-1 text-balance font-serif text-base font-semibold leading-snug tracking-tight text-foreground sm:text-lg"
+          className="text-balance font-serif text-base font-semibold leading-snug tracking-tight text-foreground sm:text-lg"
         >
           {product.name}
         </Heading>
-        <p
-          className={cn(
-            'mt-0.5 truncate text-xs tabular-nums',
-            presentationText ? 'text-foreground/80' : 'text-muted-foreground',
-          )}
-        >
-          <span className="sr-only">{LABELS.presentations}: </span>
-          {presentationText ?? TBD_SHORT}
-        </p>
+        <p className="mt-1 line-clamp-3 text-xs leading-snug text-muted-foreground">{product.summary}</p>
 
         <div className="mt-auto pt-3">
           {/* Preço só quando existe: "sob consulta" já é o que o Consultar diz. */}
@@ -151,14 +160,15 @@ export function ProductCard({
             <p className="mb-3 text-sm font-semibold tabular-nums text-foreground">{priceText}</p>
           ) : null}
 
-          {/* Contorno, igual ao tile dos Mais buscados. z-10: acima da área clicável do card. */}
+          {/* Contorno, igual ao tile dos Mais buscados. z-10: acima da área clicável do card.
+              min-h-11: alvo de toque de 44px na grade de 2 colunas do celular. */}
           <WhatsAppButton
             message={productWhatsappMessage(product, onlyPresentation)}
             location={location}
             product={product.slug}
             size="sm"
             variant="secondary"
-            className="z-10 w-full gap-1.5 border-gold/30 px-2 text-gold-soft hover:border-gold/70 hover:text-bone"
+            className="z-10 min-h-11 w-full gap-1.5 border-gold/30 px-2 text-gold-soft hover:border-gold/70 hover:text-bone"
           >
             {LABELS.consult}
             <span className="sr-only">: {product.name}</span>
@@ -167,8 +177,8 @@ export function ProductCard({
       </div>
 
       {onOpen ? (
-        // Cobre o card inteiro (menos o Consultar, que fica acima): qualquer toque abre os
-        // detalhes, com um único ponto de foco no teclado e o anel de foco no card todo.
+        // Cobre o card inteiro (menos o Consultar, que fica acima): qualquer toque abre a ficha
+        // explicativa (não é zoom da foto), com um único ponto de foco no teclado.
         <button
           type="button"
           onClick={handleOpen}
