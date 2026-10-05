@@ -13,9 +13,8 @@
 // - image: foto real do fornecedor (caixa transparente com 10 frascos), em
 //   public/peptideos/<arquivo>.webp, 960 × 720 (4:3). Use '/peptideos/<arquivo>.webp'.
 //   Sem foto, o site desenha o vial. Nada de rostos, selos ou números de pureza.
-// - Apresentação: uma por produto, com a dose do rótulo da caixa:
-//   { id: '<slug>-<mg>mg', label: '10 mg', vials: VIALS, priceUSD: null }.
-//   Lista vazia = a ficha omite a linha de apresentação (nada de "a confirmar").
+// - Apresentações: ficam VAZIAS (presentations: []). Regra do cliente: o site não cita
+//   miligramas, porque cada peptídeo tem várias dosagens; a dose é combinada no WhatsApp.
 // - Preço: troque priceUSD: null pelo valor em dólar (ex.: 70).
 //   Enquanto for null, o site não mostra preço (a consulta é pelo WhatsApp).
 //   A ficha do produto nunca mostra preço; só o card de destaque e a lista mostram.
@@ -140,8 +139,7 @@ export const PRODUCTS: Product[] = [
     category: 'Agonista metabólico investigacional',
     description:
       'A Retatrutida é um composto investigacional de ação tripla, desenvolvido para atuar ao mesmo tempo nos receptores de GLP-1, GIP e glucagon. Essa combinação é estudada principalmente por sua influência sobre saciedade, gasto energético, metabolismo da glicose e regulação do peso corporal. Por atuar em várias vias metabólicas, é considerada uma das moléculas mais avançadas em pesquisa nessa categoria.',
-    // Dose definida pelo cliente (30 mg), embora a foto do rótulo mostre outra.
-    presentations: [{ id: 'retatrutida-30mg', label: '30 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     featured: true,
     image: '/peptideos/retatrutida.webp',
@@ -155,7 +153,7 @@ export const PRODUCTS: Product[] = [
     category: 'Análogo de GLP-1',
     description:
       'A Semaglutida é um análogo do hormônio GLP-1, que participa de mecanismos ligados à saciedade, ao controle da glicose e à resposta à alimentação. Ela ativa os receptores de GLP-1, influenciando o esvaziamento gástrico, a sinalização de fome e a regulação metabólica. É uma das moléculas mais conhecidas da classe dos agonistas de GLP-1.',
-    presentations: [{ id: 'semaglutida-30mg', label: '30 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/semaglutida.webp',
   },
@@ -168,7 +166,7 @@ export const PRODUCTS: Product[] = [
     category: 'Agonista duplo de GLP-1 e glucagon',
     description:
       'A Survodutida é um composto investigacional que combina a ativação dos receptores de GLP-1 e glucagon. Essa dupla ação vem sendo estudada pela capacidade de influenciar, ao mesmo tempo, a saciedade, o metabolismo energético e o uso das reservas corporais. Seu desenvolvimento está ligado principalmente a pesquisas sobre controle de peso, metabolismo hepático e parâmetros metabólicos.',
-    presentations: [{ id: 'survodutide-5mg', label: '5 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/survodutide.webp',
   },
@@ -181,7 +179,7 @@ export const PRODUCTS: Product[] = [
     category: 'Agonista duplo de GIP e GLP-1',
     description:
       'A Tirzepatida atua em dois receptores importantes do metabolismo: GIP e GLP-1. Essa combinação permite uma ação integrada sobre controle glicêmico, sinalização de saciedade, resposta à alimentação e metabolismo energético. Por atingir duas vias hormonais ao mesmo tempo, tornou-se uma das principais referências da nova geração de agonistas metabólicos.',
-    presentations: [{ id: 'tirzepatida-60mg', label: '60 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     featured: true,
     image: '/peptideos/tirzepatida.webp',
@@ -197,7 +195,7 @@ export const PRODUCTS: Product[] = [
     category: 'Fragmento modificado do hormônio do crescimento',
     description:
       'O AOD-9604 é um fragmento sintético derivado de uma região específica do hormônio do crescimento humano. Foi desenvolvido para investigar efeitos metabólicos ligados principalmente à quebra e ao uso de gordura, sem reproduzir toda a atividade do hormônio completo. É estudado especialmente em contextos de lipólise e metabolismo do tecido adiposo.',
-    presentations: [{ id: 'aod-9604-10mg', label: '10 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/aod-9604.webp',
   },
@@ -210,7 +208,7 @@ export const PRODUCTS: Product[] = [
     category: 'Análogo de GHRH',
     description:
       'O CJC-1295 é um peptídeo sintético desenvolvido para agir de forma semelhante ao hormônio liberador do hormônio do crescimento, o GHRH. Seu principal mecanismo é estimular a hipófise, aumentando a sinalização ligada à produção e à liberação do hormônio do crescimento. É estudado em pesquisas sobre pulsos hormonais, recuperação, composição corporal e regulação endócrina.',
-    presentations: [{ id: 'cjc-1295-10mg', label: '10 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/cjc-1295.webp',
   },
@@ -223,7 +221,7 @@ export const PRODUCTS: Product[] = [
     category: 'Variante de longa duração do IGF-1',
     description:
       'O IGF-1 LR3 é uma versão modificada do fator de crescimento semelhante à insulina tipo 1, criada para ter atividade mais duradoura que a do IGF-1 natural. Sua estrutura reduz a ligação a proteínas transportadoras e aumenta a disponibilidade experimental. É usado em pesquisas sobre crescimento celular, síntese proteica, sinalização anabólica e metabolismo de nutrientes.',
-    presentations: [{ id: 'igf-1-lr3-1mg', label: '1 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/igf-1-lr3.webp',
   },
@@ -236,7 +234,7 @@ export const PRODUCTS: Product[] = [
     category: 'Secretagogo do hormônio do crescimento',
     description:
       'A Ipamorelina é um peptídeo que atua em receptores ligados à liberação do hormônio do crescimento. É conhecida por uma ação mais seletiva que a de outros secretagogos, estimulando pulsos de GH por vias específicas. É estudada em contextos de recuperação, composição corporal, sono e regulação hormonal.',
-    presentations: [{ id: 'ipamorelina-10mg', label: '10 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/ipamorelina.webp',
   },
@@ -249,7 +247,7 @@ export const PRODUCTS: Product[] = [
     category: 'Análogo de GHRH',
     description:
       'A Sermorelina é um peptídeo sintético que imita parte da ação natural do hormônio liberador do hormônio do crescimento. Atua principalmente na hipófise, estimulando os mecanismos fisiológicos de produção e liberação de GH. É usada em pesquisas sobre função endócrina, secreção hormonal e manutenção dos ritmos naturais de liberação do hormônio do crescimento.',
-    presentations: [{ id: 'sermorelin-10mg', label: '10 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/sermorelin.webp',
   },
@@ -262,7 +260,7 @@ export const PRODUCTS: Product[] = [
     category: 'Análogo de GHRH',
     description:
       'A Tesamorelina é um análogo sintético do hormônio liberador do hormônio do crescimento. Seu principal efeito está ligado ao estímulo da produção endógena de GH pela hipófise, preservando o padrão natural de sinalização hormonal. É estudada por sua influência sobre metabolismo, composição corporal e distribuição de gordura.',
-    presentations: [{ id: 'tesamorelina-20mg', label: '20 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/tesamorelina.webp',
   },
@@ -277,7 +275,7 @@ export const PRODUCTS: Product[] = [
     category: 'Peptídeo experimental de reparação tecidual',
     description:
       'O BPC-157 é um peptídeo experimental amplamente pesquisado em modelos de regeneração e recuperação de tecidos. Estudos pré-clínicos investigam sua possível participação na reparação de músculos, tendões, ligamentos, mucosa gastrointestinal e outros tecidos. Também é analisado por sua interação com mecanismos inflamatórios, angiogênese e recuperação celular.',
-    presentations: [{ id: 'bpc-157-10mg', label: '10 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     featured: true,
     image: '/peptideos/bpc-157.webp',
@@ -291,7 +289,7 @@ export const PRODUCTS: Product[] = [
     category: 'Peptídeo relacionado à timosina beta-4',
     description:
       'O TB-500 é um peptídeo sintético associado à atividade da timosina beta-4, proteína envolvida na migração celular e na reparação de tecidos. É investigado principalmente por sua relação com regeneração, mobilidade celular, formação de novos vasos e recuperação de estruturas musculares e conjuntivas. Seu uso segue concentrado em contextos experimentais.',
-    presentations: [{ id: 'tb-500-10mg', label: '10 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/tb-500.webp',
   },
@@ -306,7 +304,7 @@ export const PRODUCTS: Product[] = [
     category: 'Peptídeo mitocondrial',
     description:
       'O MOTS-c é um pequeno peptídeo produzido a partir do DNA mitocondrial e associado à regulação do metabolismo celular. Pesquisas investigam seu papel no uso da glicose, na produção de energia, na resposta ao estresse metabólico e na adaptação celular ao exercício. É considerado um importante exemplo de molécula de sinalização originada diretamente das mitocôndrias.',
-    presentations: [{ id: 'mots-c-20mg', label: '20 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/mots-c.webp',
   },
@@ -319,7 +317,7 @@ export const PRODUCTS: Product[] = [
     category: 'Cofator celular',
     description:
       'O NAD+ é uma molécula presente em praticamente todas as células do organismo e participa de processos fundamentais de produção de energia. Atua como cofator em diversas reações metabólicas e está envolvido na reparação celular, na função mitocondrial e na atividade de enzimas reguladoras. Seus níveis são amplamente estudados em pesquisas sobre metabolismo e envelhecimento.',
-    presentations: [{ id: 'nad-100mg', label: '100 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/nad.webp',
   },
@@ -332,7 +330,7 @@ export const PRODUCTS: Product[] = [
     category: 'Peptídeo direcionado às mitocôndrias',
     description:
       'O SS-31 é um peptídeo experimental desenvolvido para atuar diretamente nas mitocôndrias. Sua pesquisa está ligada à proteção das membranas mitocondriais, à eficiência energética e à redução de danos associados ao estresse oxidativo. É estudado em diferentes modelos de disfunção celular, especialmente os ligados à baixa eficiência na produção de energia.',
-    presentations: [{ id: 'ss-31-50mg', label: '50 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/ss-31.webp',
   },
@@ -347,7 +345,7 @@ export const PRODUCTS: Product[] = [
     category: 'Peptídeo experimental relacionado ao sono',
     description:
       'O DSIP (Delta Sleep-Inducing Peptide) é um peptídeo identificado inicialmente em estudos sobre sono e atividade cerebral. Desde então, passou a ser investigado por sua possível relação com a regulação do sono, a resposta ao estresse, o controle neuroendócrino e funções do sistema nervoso. Seu mecanismo de ação ainda é objeto de pesquisa.',
-    presentations: [{ id: 'dsip-5mg', label: '5 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/dsip.webp',
   },
@@ -360,7 +358,7 @@ export const PRODUCTS: Product[] = [
     category: 'Tetrapeptídeo sintético',
     description:
       'O Epitalon é um pequeno peptídeo sintético desenvolvido a partir de estudos sobre peptídeos da glândula pineal. É investigado principalmente em pesquisas sobre envelhecimento celular, ritmos circadianos, expressão gênica e atividade da telomerase. Seu interesse científico está ligado à possível influência sobre processos de manutenção e longevidade celular.',
-    presentations: [{ id: 'epitalon-50mg', label: '50 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/epitalon.webp',
   },
@@ -372,7 +370,7 @@ export const PRODUCTS: Product[] = [
     category: 'Peptídeo neuroativo',
     description:
       'O Selank é um peptídeo sintético desenvolvido a partir de moléculas ligadas aos sistemas imunológico e nervoso. É estudado por sua possível influência sobre mecanismos de ansiedade, estresse, cognição, memória e neurotransmissão. Pesquisas experimentais também avaliam sua interação com sistemas como GABA, serotonina e fatores neurotróficos.',
-    presentations: [{ id: 'selank-10mg', label: '10 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/selank.webp',
   },
@@ -384,7 +382,7 @@ export const PRODUCTS: Product[] = [
     category: 'Peptídeo neuroativo',
     description:
       'O Semax é um peptídeo sintético pesquisado principalmente por sua interação com mecanismos de cognição e proteção neuronal. Estudos investigam sua influência sobre memória, aprendizado, resposta ao estresse celular e produção de fatores neurotróficos. É conhecido sobretudo por pesquisas sobre o sistema nervoso central e a sinalização cerebral.',
-    presentations: [{ id: 'semax-10mg', label: '10 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/semax.webp',
   },
@@ -399,7 +397,7 @@ export const PRODUCTS: Product[] = [
     category: 'Peptídeo ligado ao cobre',
     description:
       'O GHK-Cu é um complexo formado pelo peptídeo GHK ligado a um íon de cobre. A molécula ocorre naturalmente no organismo e participa de processos de remodelação de tecidos. É amplamente estudada por sua relação com produção de colágeno, regeneração da pele, cicatrização, crescimento capilar e manutenção da matriz extracelular.',
-    presentations: [{ id: 'ghk-cu-100mg', label: '100 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     featured: true,
     image: '/peptideos/ghk-cu.webp',
@@ -415,7 +413,7 @@ export const PRODUCTS: Product[] = [
     category: 'Peptídeo imunomodulador',
     description:
       'A Thymosin Alpha-1 é um peptídeo ligado à atividade do timo e à regulação da resposta imunológica. É estudada por sua capacidade de influenciar diferentes componentes do sistema imune, incluindo células T, células dendríticas e mecanismos de defesa celular. Seu interesse científico está principalmente na modulação e no equilíbrio da resposta imunológica.',
-    presentations: [{ id: 'thymosin-alpha-1-10mg', label: '10 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/thymosin-alpha-1.webp',
   },
@@ -430,9 +428,7 @@ export const PRODUCTS: Product[] = [
     category: 'Combinação de peptídeos secretagogos',
     description:
       'A combinação de CJC-1295 com Ipamorelina reúne dois mecanismos complementares ligados à liberação do hormônio do crescimento. Enquanto o CJC-1295 atua em vias semelhantes às do GHRH, a Ipamorelina age sobre receptores secretagogos específicos. A associação é estudada pela capacidade de estimular pulsos hormonais por vias diferentes ao mesmo tempo.',
-    presentations: [
-      { id: 'cjc-1295-ipamorelina-10mg', label: '10 mg', vials: VIALS, priceUSD: null },
-    ],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/cjc-1295-ipamorelina.webp',
   },
@@ -441,14 +437,14 @@ export const PRODUCTS: Product[] = [
     name: 'KLOW',
     aliases: ['Klow', 'GHK-Cu + BPC-157 + TB-500 + KPV'],
     family: 'blends',
-    // A composição do 80 mg ainda não foi confirmada pelo Primo (o rótulo só diz 'KLOW
-    // 80mg/vial'): o resumo não afirma os componentes e a descrição mantém a ressalva.
+    // A composição ainda não foi confirmada pelo Primo (o rótulo só diz 'KLOW'):
+    // o resumo não afirma os componentes e a descrição mantém a ressalva.
     // Confirmada, a descrição pode dizer 'Esta formulação reúne GHK-Cu, BPC-157, TB-500 e KPV.'
     summary: 'Blend de peptídeos estudado em reparação tecidual',
     category: 'Combinação de peptídeos de reparação tecidual',
     description:
       'O KLOW é uma combinação de peptídeos usada em pesquisas que buscam reunir mecanismos ligados à regeneração, à remodelação de tecidos e à modulação inflamatória. Dependendo da formulação, o blend pode incluir GHK-Cu, BPC-157, TB-500 e KPV. A proposta é explorar diferentes vias biológicas de forma complementar num mesmo protocolo experimental.',
-    presentations: [{ id: 'klow-80mg', label: '80 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/klow.webp',
   },
@@ -461,7 +457,7 @@ export const PRODUCTS: Product[] = [
     category: 'Combinação de peptídeos de pesquisa',
     description:
       'A combinação de BPC-157 com TB-500 reúne dois peptídeos experimentais amplamente investigados em estudos de reparação e regeneração tecidual. O BPC-157 é associado à recuperação e à angiogênese, e o TB-500, à migração celular e à remodelação dos tecidos. Juntos, são estudados em protocolos experimentais voltados à recuperação de músculos, tendões e outros tecidos.',
-    presentations: [{ id: 'wolverine-10mg', label: '10 mg', vials: VIALS, priceUSD: null }],
+    presentations: [],
     status: 'sob-consulta',
     image: '/peptideos/bpc-157-tb-500.webp',
   },
@@ -506,12 +502,10 @@ export function startingPriceUSD(product: Product): number | null {
   return prices.length > 0 ? Math.min(...prices) : null
 }
 
-// 'Olá, Primo. Quero consultar Retatrutida 30 mg (caixa com 10 vials).'
-// 'Olá, Primo. Quero consultar Retatrutida.'
-export function productWhatsappMessage(product: Product, presentation?: Presentation): string {
-  if (!presentation) return `Olá, Primo. Quero consultar ${product.name}.`
-  const code = presentation.code ? `, código ${presentation.code}` : ''
-  return `Olá, Primo. Quero consultar ${product.name} ${presentation.label} (caixa com ${presentation.vials} vials${code}).`
+// Mensagem pronta do WhatsApp para um produto. Sem dosagem: cada peptídeo tem várias,
+// e a dose é combinada na conversa. Ex.: 'Olá, Primo. Quero consultar Retatrutida. Quais dosagens estão disponíveis?'
+export function productWhatsappMessage(product: Product): string {
+  return `Olá, Primo. Quero consultar ${product.name}. Quais dosagens estão disponíveis?`
 }
 
 function normalize(value: string): string {

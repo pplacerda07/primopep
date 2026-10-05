@@ -244,7 +244,6 @@ export const COPY = {
 
   productSheet: {
     dialogLabel: 'Detalhes do produto',
-    choosePresentation: 'Escolha a apresentação',
     cta: 'Consultar no WhatsApp',
     // Nota junto da linha de apresentação. A ficha não mostra preço nem disponibilidade (regra 11).
     resend: 'Reenvio gratuito incluso no preço',
@@ -253,11 +252,8 @@ export const COPY = {
     aboutTitle: 'Como age',
     // Rótulo de product.category (sr-only / aria).
     categoryLabel: 'Categoria',
-    // Linha da apresentação única. {dose} = presentation.label ('30 mg');
-    // {vials} = texto completo da caixa ('10 vials'):
-    // fill(presentationLine, { dose: p.label, vials: `${p.vials} vials` }).
-    // Sem apresentação, a ficha omite a linha (nada de "a confirmar").
-    presentationLine: '{dose} por vial · caixa com {vials}',
+    // Sem miligramas (regra do cliente): cada peptídeo tem várias dosagens, combinadas no WhatsApp.
+    presentationNote: `Várias dosagens disponíveis, em caixas com ${vialsPerBox} vials.`,
     // Aviso fixo junto de "Como age" (resumo da observação geral do cliente).
     // Não repete PROTOCOL_NOTE, que já aparece na ficha junto do protocolo.
     disclaimer:

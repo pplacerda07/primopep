@@ -9,7 +9,7 @@
 // Nada de "preço sob consulta", reais ou disponibilidade: isso é conversa do WhatsApp.
 // AnimatePresence fica sempre montado para a animação de saída rodar.
 
-import { useEffect, useEffectEvent, useId, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useEffectEvent, useId, useRef, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion, useDragControls, useIsPresent } from 'motion/react'
 import { FileText, Package, RefreshCw, X } from 'lucide-react'
@@ -18,7 +18,7 @@ import { Vial } from '@/components/vial'
 import { WhatsAppButton } from '@/components/ui/whatsapp-button'
 import { track } from '@/lib/analytics'
 import { getFamily, hasProtocol, productWhatsappMessage, type Product } from '@/lib/catalog'
-import { COPY, fill } from '@/lib/content'
+import { COPY } from '@/lib/content'
 import { cn } from '@/lib/utils'
 
 const EASE = [0.22, 1, 0.36, 1] as const
@@ -150,11 +150,6 @@ function SheetDialog({ product, onClose }: { product: Product; onClose: () => vo
   const uid = useId()
   const titleId = `${uid}-titulo`
   const aboutId = `${uid}-como-age`
-  const groupName = `${uid}-apresentacao`
-
-  const presentations = product.presentations
-  const [selectedId, setSelectedId] = useState<string | null>(presentations[0]?.id ?? null)
-  const selected = presentations.find((item) => item.id === selectedId)
 
   const copy = COPY.productSheet
   const family = getFamily(product.family)
@@ -164,12 +159,6 @@ function SheetDialog({ product, onClose }: { product: Product; onClose: () => vo
   // Uma linha sob o nome: categoria e apelidos ('Análogo de GLP-1 · Semaglutide · Sema').
   // Espaço fixo antes do ponto: se quebrar, o ponto fica no fim da linha, não no começo.
   const subtitle = [product.category, ...aliases].filter(Boolean).join('\u00a0· ')
-
-  // '30 mg por vial · caixa com 10 vials'. Sem preço: a ficha não repete preço (regra 11).
-  // Sem apresentação, a linha some (nada de "a confirmar", regra 10).
-  const presentationText = selected
-    ? fill(copy.presentationLine, { dose: selected.label, vials: `${selected.vials} vials` })
-    : null
 
   const requestClose = useEffectEvent(() => onClose())
 
@@ -205,7 +194,7 @@ function SheetDialog({ product, onClose }: { product: Product; onClose: () => vo
   }
 
   function handleConsult() {
-    track('sku_consult', { product: product.slug, presentation: selected?.label ?? null })
+    track('sku_consult', { product: product.slug })
   }
 
   if (!mounted) return null
@@ -292,7 +281,7 @@ function SheetDialog({ product, onClose }: { product: Product; onClose: () => vo
               ) : (
                 <>
                   <ToneGlow tone={family.tone} className="w-[70%] md:hidden" />
-                  <Vial label={product.name} sublabel={selected?.label ?? ''} className="relative w-16 md:w-20" />
+                  <Vial label={product.name} sublabel="" className="relative w-16 md:w-20" />
                 </>
               )}
             </div>
@@ -330,60 +319,13 @@ function SheetDialog({ product, onClose }: { product: Product; onClose: () => vo
                 <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{copy.disclaimer}</p>
               </section>
 
-              {presentations.length > 1 ? (
-                <fieldset>
-                  <legend className="mb-2.5 text-sm text-muted-foreground">{copy.choosePresentation}</legend>
-                  <div className="flex flex-wrap gap-2">
-                    {presentations.map((presentation) => {
-                      const checked = presentation.id === selectedId
-                      return (
-                        <label
-                          key={presentation.id}
-                          className={cn(
-                            'inline-flex min-h-11 cursor-pointer items-center gap-2.5 rounded-full border pl-3 pr-4',
-                            'text-sm font-semibold tabular-nums transition-colors duration-200',
-                            'has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-gold-soft',
-                            checked
-                              ? 'border-gold/70 bg-gold/10 text-gold-soft'
-                              : 'border-border/80 bg-background/40 text-foreground hover:border-gold/40',
-                          )}
-                        >
-                          <input
-                            type="radio"
-                            name={groupName}
-                            value={presentation.id}
-                            checked={checked}
-                            onChange={() => setSelectedId(presentation.id)}
-                            className="sr-only"
-                          />
-                          <span
-                            aria-hidden="true"
-                            className={cn(
-                              'flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors duration-200',
-                              checked ? 'border-gold bg-gold' : 'border-silver/50',
-                            )}
-                          >
-                            {checked ? <span className="size-1.5 rounded-full bg-ink" /> : null}
-                          </span>
-                          {presentation.label}
-                        </label>
-                      )
-                    })}
-                  </div>
-                </fieldset>
-              ) : null}
-
               {/* Uma linha de apresentação e as duas notas curtas, sem repetir nada. */}
               <div className="mt-auto border-t border-border/60 pt-4">
-                {presentationText ? (
-                  <p
-                    aria-live={presentations.length > 1 ? 'polite' : undefined}
-                    className="mb-3 flex items-start gap-2 text-sm font-medium tabular-nums text-foreground"
-                  >
+                {/* Sem miligramas: cada peptídeo tem várias dosagens (regra do cliente). */}
+                  <p className="mb-3 flex items-start gap-2 text-sm font-medium text-foreground">
                     <Package aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-gold-soft" />
-                    <span>{presentationText}</span>
+                    <span>{copy.presentationNote}</span>
                   </p>
-                ) : null}
 
                 <ul className="flex flex-col gap-2 text-xs leading-relaxed text-muted-foreground">
                   <li className="flex gap-2">
@@ -408,7 +350,7 @@ function SheetDialog({ product, onClose }: { product: Product; onClose: () => vo
               {/* Captura o clique do link para registrar a consulta do SKU (o botão registra o whatsapp_click). */}
               <div onClick={handleConsult}>
                 <WhatsAppButton
-                  message={productWhatsappMessage(product, selected)}
+                  message={productWhatsappMessage(product)}
                   location="product_sheet"
                   product={product.slug}
                   size="lg"

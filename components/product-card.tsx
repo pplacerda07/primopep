@@ -110,8 +110,6 @@ export function ProductCard({
 
   const price = startingPriceUSD(product)
   const pricedCount = presentations.filter((item) => item.priceUSD !== null).length
-  // Só pré-preenche a apresentação na mensagem quando não há escolha a fazer.
-  const onlyPresentation = presentations.length === 1 ? presentations[0] : undefined
 
   const priceText =
     price === null ? null : pricedCount > 1 ? `${LABELS.fromPrice} ${formatUSD(price)}` : formatUSD(price)
@@ -136,11 +134,7 @@ export function ProductCard({
         ) : (
           <>
             <ToneGlow tone={family.tone} className="w-[80%] opacity-80" />
-            <Vial
-              label={product.name}
-              sublabel={presentations[0]?.label ?? ''}
-              className="relative w-10 sm:w-12 lg:w-14"
-            />
+            <Vial label={product.name} className="relative w-10 sm:w-12 lg:w-14" />
           </>
         )}
       </div>
@@ -163,7 +157,7 @@ export function ProductCard({
           {/* Contorno, igual ao tile dos Mais buscados. z-10: acima da área clicável do card.
               min-h-11: alvo de toque de 44px na grade de 2 colunas do celular. */}
           <WhatsAppButton
-            message={productWhatsappMessage(product, onlyPresentation)}
+            message={productWhatsappMessage(product)}
             location={location}
             product={product.slug}
             size="sm"

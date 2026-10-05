@@ -23,6 +23,7 @@ Definidas pelo dono do Primo durante a construção do site (02/10/2026):
 12. **Faixa abaixo da hero.** Nunca pausa (nem com mouse ou toque) e não tem ícone de pausa. Os itens falam dos benefícios de comprar com o Primo, não de detalhes da operação.
 13. **Hero.** O objeto que viaja de Hong Kong ao Brasil é a caixinha de ampolas das fotos (estojo transparente com os frascos de tampa colorida), não uma ampola solta nem uma caixa de papelão. A frase de apoio começa com "Acesso direto ao fornecedor do Primo".
 10. **"Mais buscados" em lista.** Cada item mostra só o nome e uma descrição neutra de 7 palavras, sem botão "Consultar", sem "mg" e sem "A confirmar". O item abre a ficha do produto.
+14. **Nenhum miligrama no site.** Cada peptídeo tem várias dosagens, então nenhum card, lista, ficha ou mensagem do WhatsApp cita mg. A ficha diz "Várias dosagens disponíveis", e a mensagem pergunta quais dosagens estão disponíveis. Os dados do catálogo ficam sem apresentações (`presentations: []`).
 10. **Reenvio gratuito incluso.** A política de reenvio do Primo já está no preço final: se algo acontecer com o envio, o reenvio é gratuito. Dizer isso de forma clara e curta, sem inventar condições nem números.
 
 ---
