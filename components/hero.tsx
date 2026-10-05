@@ -56,12 +56,13 @@ export function Hero() {
     <section
       id={SECTION_IDS.hero}
       aria-labelledby={titleId}
-      className="relative isolate overflow-x-clip pb-10 pt-24 sm:pb-16 sm:pt-32 lg:flex lg:min-h-[min(calc(100svh_-_3.5rem),52rem)] lg:flex-col lg:justify-center lg:pb-16"
+      className="relative isolate overflow-x-clip pb-16 pt-24 sm:pb-20 sm:pt-32 lg:flex lg:min-h-[min(calc(100svh_-_3.5rem),52rem)] lg:flex-col lg:justify-center lg:pb-16"
     >
       <Container>
-        <div className="grid items-center gap-y-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-x-10 xl:gap-x-14">
-          {/* Copy + CTAs */}
-          <div className="flex max-w-2xl flex-col items-start">
+        {/* Celular: texto → mapa → botões (pedido do cliente). Desktop: texto e botões à esquerda, mapa à direita. */}
+        <div className="grid items-center gap-y-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:grid-rows-[auto_auto] lg:gap-x-10 xl:gap-x-14">
+          {/* Copy */}
+          <div className="flex max-w-2xl flex-col items-start lg:col-start-1 lg:row-start-1 lg:self-end">
             <h1
               id={titleId}
               className={cn(
@@ -82,33 +83,13 @@ export function Hero() {
             >
               {hero.subtitle}
             </p>
-
-            <div className={cn('mt-7 grid w-full grid-cols-2 gap-3 sm:mt-8 sm:flex sm:w-auto', ENTER, 'delay-200')}>
-              <ButtonLink
-                href={`/#${SECTION_IDS.catalog}`}
-                trackEvent="primary_cta_click"
-                trackProps={{ cta: 'ver_catalogo', location: 'hero' }}
-                className={CTA}
-              >
-                {hero.primaryCta}
-                <ArrowRight aria-hidden="true" className="size-4 transition-transform duration-200 group-hover/button:translate-x-0.5" />
-              </ButtonLink>
-              <WhatsAppButton
-                message={hero.secondaryCtaMessage}
-                location="hero"
-                variant="secondary"
-                className={CTA}
-              >
-                {hero.secondaryCta}
-              </WhatsAppButton>
-            </div>
           </div>
 
           {/* Dotted world map: the ampoule box (clear case + vials) travels Hong Kong -> Brasil. Full-bleed on phones. */}
           <div
             className={cn(
               'relative -mx-4 overflow-x-clip sm:-mx-6',
-              'lg:mx-0 lg:-mr-8 lg:overflow-visible',
+              'lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mx-0 lg:-mr-8 lg:overflow-visible',
               'xl:-mr-[min(10rem,calc((100vw_-_80rem)/2_+_2rem))]',
             )}
           >
@@ -127,6 +108,28 @@ export function Hero() {
                 ariaLabel={hero.map.ariaLabel}
               />
             </div>
+          </div>
+
+          {/* CTAs: abaixo do mapa no celular; abaixo do texto, na coluna da esquerda, no desktop. */}
+          <div
+            className={cn(
+              'grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto lg:col-start-1 lg:row-start-2 lg:self-start',
+              ENTER,
+              'delay-200',
+            )}
+          >
+            <ButtonLink
+              href={`/#${SECTION_IDS.catalog}`}
+              trackEvent="primary_cta_click"
+              trackProps={{ cta: 'ver_catalogo', location: 'hero' }}
+              className={CTA}
+            >
+              {hero.primaryCta}
+              <ArrowRight aria-hidden="true" className="size-4 transition-transform duration-200 group-hover/button:translate-x-0.5" />
+            </ButtonLink>
+            <WhatsAppButton message={hero.secondaryCtaMessage} location="hero" variant="secondary" className={CTA}>
+              {hero.secondaryCta}
+            </WhatsAppButton>
           </div>
         </div>
       </Container>

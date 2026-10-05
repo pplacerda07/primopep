@@ -326,13 +326,4 @@ export const COPY = {
     ariaLabel: 'Falar com o Primo no WhatsApp (abre em nova aba)',
     message: 'Olá, Primo. Quero entender como funciona.',
   },
-
-  // Balão que sai do botão principal "Falar com o Primo" (tempo em WHATSAPP_POPUP, lib/site.ts).
-  // Sem botão próprio: o CTA é o botão de onde ele sai.
-  whatsappPopup: {
-    // Texto do balão; também rotula o pop-up (aria-labelledby).
-    message: 'Não achou o que procura? Fala com o Primo.',
-    // aria-label do botão X.
-    close: 'Fechar mensagem do Primo',
-  },
 } as const

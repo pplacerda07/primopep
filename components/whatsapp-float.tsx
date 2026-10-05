@@ -4,7 +4,6 @@ import { usePathname } from 'next/navigation'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { WhatsAppIcon } from '@/components/ui/icons'
-import { WhatsAppPopup } from '@/components/whatsapp-popup'
 import { track } from '@/lib/analytics'
 import { COPY } from '@/lib/content'
 import { SECTION_IDS, whatsappLink } from '@/lib/site'
@@ -36,7 +35,7 @@ function isOnScreen(element: Element | null, viewportHeight: number) {
 /**
  * Visible once ~70% of the hero has scrolled away, and hidden while the final CTA or the footer
  * is on screen. Both conditions are measured in the same frame, so it never flashes in when the
- * page jumps (or opens) straight to the bottom. endInView is returned too: the pop-up uses it.
+ * page jumps (or opens) straight to the bottom.
  */
 function useFloatVisible(pathname: string) {
   const [state, setState] = useState({ visible: false, endInView: false })
@@ -121,7 +120,7 @@ function useEditingText() {
 export function WhatsAppFloat() {
   const pathname = usePathname()
   const reduceMotion = useReducedMotion()
-  const { visible, endInView } = useFloatVisible(pathname)
+  const { visible } = useFloatVisible(pathname)
   const editing = useEditingText()
   const href = whatsappLink(COPY.whatsappFloat.message)
 
@@ -197,10 +196,6 @@ export function WhatsAppFloat() {
           </motion.div>
         ) : null}
       </AnimatePresence>
-
-      {/* Balão que sai deste botão (bolinhas de pensamento), uma vez só, após
-          WHATSAPP_POPUP.delaySeconds. Como o botão, sai de cena perto do CTA final e do rodapé. */}
-      <WhatsAppPopup floatVisible={visible} editing={editing} suppressed={endInView} />
     </>
   )
 }

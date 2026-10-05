@@ -19,7 +19,7 @@ Abra http://localhost:3000.
 
 | O quê | Arquivo |
 |---|---|
-| Número do WhatsApp, contatos, frete, prazo, intervalo do pop-up | `lib/site.ts` |
+| Número do WhatsApp, contatos, frete e prazo | `lib/site.ts` |
 | Todos os textos do site | `lib/content.ts` |
 | Produtos, apresentações, preços (USD) e destaques | `lib/catalog.ts` |
 | Fotos e vídeos do fornecedor (sem rostos, máximo 14) | `lib/media.ts` + `public/fonte/` |

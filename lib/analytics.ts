@@ -12,8 +12,6 @@ export type AnalyticsEvent =
   | 'catalog_search'
   | 'catalog_filter'
   | 'faq_open'
-  | 'whatsapp_popup_shown'
-  | 'whatsapp_popup_dismissed'
 
 type AnalyticsValue = string | number | boolean | null | undefined
 type AnalyticsProps = Record<string, AnalyticsValue>
