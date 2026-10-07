@@ -2,9 +2,10 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Fraunces, Manrope } from 'next/font/google'
 import { AnalyticsBootstrap } from '@/components/analytics-bootstrap'
+import { MetaPixel } from '@/components/meta-pixel'
 import { Providers } from '@/components/providers'
 import { COPY } from '@/lib/content'
-import { SITE } from '@/lib/site'
+import { META_PIXEL_ID, SITE } from '@/lib/site'
 import './globals.css'
 
 const manrope = Manrope({
@@ -82,6 +83,7 @@ export default function RootLayout({
         <Providers>{children}</Providers>
         <AnalyticsBootstrap />
         {process.env.NODE_ENV === 'production' && <Analytics />}
+        {process.env.NODE_ENV === 'production' && META_PIXEL_ID ? <MetaPixel id={META_PIXEL_ID} /> : null}
       </body>
     </html>
   )

@@ -1,4 +1,5 @@
 import { track as vercelTrack } from '@vercel/analytics'
+import { PRODUCTS } from '@/lib/catalog'
 
 // Eventos instrumentados (briefing §15). Seguro para importar em qualquer lugar:
 // no servidor, track() e captureUtm() simplesmente não fazem nada.
@@ -17,13 +18,27 @@ type AnalyticsValue = string | number | boolean | null | undefined
 type AnalyticsProps = Record<string, AnalyticsValue>
 type CleanProps = Record<string, string | number | boolean | null>
 
-// Disparado em window a cada track('whatsapp_click'): o pop-up do WhatsApp escuta e para de aparecer.
-export const WHATSAPP_CLICK_EVENT = 'primo:whatsapp-click'
-
 declare global {
   interface Window {
     dataLayer?: unknown[]
+    /** Pixel da Meta (components/meta-pixel.tsx). Só existe em produção. */
+    fbq?: (command: 'track' | 'init', event: string, params?: Record<string, unknown>) => void
   }
+}
+
+// Lead da Meta: todo clique em botão de WhatsApp é uma conversão (mesmo formato da LP do GHK-Cu).
+// Todo link de WhatsApp do site passa por track('whatsapp_click') (WhatsAppButton, header,
+// botão flutuante), então o Lead sai daqui e nunca em dobro. Link novo de WhatsApp: use
+// WhatsAppButton ou chame track('whatsapp_click').
+function trackMetaLead(props: CleanProps) {
+  if (typeof window.fbq !== 'function') return
+  const slug = typeof props.product === 'string' ? props.product : null
+  const product = slug ? PRODUCTS.find((item) => item.slug === slug) : undefined
+  window.fbq('track', 'Lead', {
+    content_name: product?.name ?? 'Primo Peptídeos',
+    content_category: 'whatsapp',
+    origem: typeof props.location === 'string' ? props.location : 'site',
+  })
 }
 
 const UTM_STORAGE_KEY = 'primo:utm'
@@ -103,7 +118,7 @@ export function track(event: AnalyticsEvent, props?: AnalyticsProps): void {
 
   if (event === 'whatsapp_click') {
     try {
-      window.dispatchEvent(new CustomEvent(WHATSAPP_CLICK_EVENT, { detail: payload }))
+      trackMetaLead(cleanProps(props))
     } catch {
       // ignora
     }

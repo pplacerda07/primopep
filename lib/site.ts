@@ -50,6 +50,11 @@ export const WHATSAPP_NUMBER = '595991636087'
 
 export const WHATSAPP_DEFAULT_MESSAGE = 'Olá, Primo. Quero entender como funciona.'
 
+// Pixel da Meta (anúncios no Facebook e Instagram). Único ponto de troca do ID; a variável
+// NEXT_PUBLIC_META_PIXEL_ID (na Vercel) tem prioridade. String vazia desliga o pixel.
+// Carrega só em produção. Eventos: PageView ao abrir/navegar e Lead em todo clique de WhatsApp.
+export const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID ?? '2090274458589717'
+
 export function whatsappLink(message?: string): string {
   const text = message ?? WHATSAPP_DEFAULT_MESSAGE
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`
