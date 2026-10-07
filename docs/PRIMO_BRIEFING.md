@@ -24,6 +24,7 @@ Definidas pelo dono do Primo durante a construção do site (02/10/2026):
 13. **Hero.** O objeto que viaja de Hong Kong ao Brasil é a caixinha de ampolas das fotos (estojo transparente com os frascos de tampa colorida), não uma ampola solta nem uma caixa de papelão. A frase de apoio começa com "Acesso direto ao fornecedor do Primo". No celular, os botões "Ver produtos" e "Falar com o Primo" ficam **abaixo do mapa**, com bom respiro até a faixa.
 10. **"Mais buscados" em lista.** Cada item mostra só o nome e uma descrição neutra de 7 palavras, sem botão "Consultar", sem "mg" e sem "A confirmar". O item abre a ficha do produto.
 14. **Nenhum miligrama no site.** Cada peptídeo tem várias dosagens, então nenhum card, lista, ficha ou mensagem do WhatsApp cita mg. A ficha diz "Várias dosagens disponíveis", e a mensagem pergunta quais dosagens estão disponíveis. Os dados do catálogo ficam sem apresentações (`presentations: []`).
+15. **Sem botão de WhatsApp no topo.** O header (desktop e celular) não tem botão de WhatsApp: o botão flutuante e os da página já cumprem esse papel, sem três botões na tela ao mesmo tempo. Todo botão de WhatsApp dispara o evento Lead do Pixel da Meta.
 10. **Reenvio gratuito incluso.** A política de reenvio do Primo já está no preço final: se algo acontecer com o envio, o reenvio é gratuito. Dizer isso de forma clara e curta, sem inventar condições nem números.
 
 ---

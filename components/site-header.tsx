@@ -13,11 +13,9 @@ import {
   type FocusEvent,
 } from 'react'
 import { Logo } from '@/components/logo'
-import { ButtonLink } from '@/components/ui/button-link'
-import { WhatsAppIcon } from '@/components/ui/icons'
 import { WhatsAppButton } from '@/components/ui/whatsapp-button'
 import { COPY } from '@/lib/content'
-import { NAV_LINKS, SECTION_IDS, whatsappLink } from '@/lib/site'
+import { NAV_LINKS, SECTION_IDS } from '@/lib/site'
 import { cn } from '@/lib/utils'
 
 const EASE = [0.22, 1, 0.36, 1] as const
@@ -238,29 +236,8 @@ export function SiteHeader() {
             </ul>
           </nav>
 
+          {/* Sem botão de WhatsApp no topo (pedido do cliente): o botão flutuante já cumpre esse papel. */}
           <div className="flex flex-1 items-center justify-end gap-2">
-            <WhatsAppButton
-              message={COPY.header.ctaMessage}
-              location="header"
-              size="sm"
-              className="hidden sm:inline-flex"
-            >
-              {COPY.header.cta}
-            </WhatsAppButton>
-
-            <ButtonLink
-              href={whatsappLink(COPY.header.ctaMessage)}
-              external
-              size="sm"
-              variant="secondary"
-              trackEvent="whatsapp_click"
-              trackProps={{ location: 'header' }}
-              aria-label={COPY.whatsappFloat.ariaLabel}
-              className="size-11 min-h-0 px-0 sm:hidden"
-            >
-              <WhatsAppIcon className="size-5" />
-            </ButtonLink>
-
             <button
               ref={toggleRef}
               type="button"
