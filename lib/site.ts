@@ -46,7 +46,7 @@ export const SITE: Site = {
 }
 
 // Formato internacional, só dígitos (DDI + DDD + número). Único ponto de troca do número.
-export const WHATSAPP_NUMBER = '595991636087'
+export const WHATSAPP_NUMBER = '556731980887' // +55 67 3198-0887
 
 export const WHATSAPP_DEFAULT_MESSAGE = 'Olá, Primo. Quero entender como funciona.'
 
