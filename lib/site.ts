@@ -55,6 +55,11 @@ export const WHATSAPP_DEFAULT_MESSAGE = 'Olá, Primo. Quero entender como funcio
 // Carrega só em produção. Eventos: PageView ao abrir/navegar e Lead em todo clique de WhatsApp.
 export const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID ?? '2090274458589717'
 
+// Pixel do formulário do GHK-Cu (/ghk-cu), separado do pixel do site: a página do
+// formulário carrega SÓ este. A variável NEXT_PUBLIC_GHK_FORM_PIXEL_ID tem prioridade.
+// String vazia desliga. Eventos: PageView ao abrir e Lead no clique do WhatsApp do fim.
+export const GHK_FORM_PIXEL_ID = process.env.NEXT_PUBLIC_GHK_FORM_PIXEL_ID ?? ''
+
 export function whatsappLink(message?: string): string {
   const text = message ?? WHATSAPP_DEFAULT_MESSAGE
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`

@@ -53,6 +53,10 @@ export const COPY = {
       title: 'Mais buscados',
       description: `Os mais buscados do Primo Peptídeos, em caixas com ${vialsPerBox} vials. O catálogo completo vem pelo WhatsApp.`,
     },
+    ghkForm: {
+      title: 'GHK-Cu com o Primo',
+      description: 'Três perguntas rápidas e a sua mensagem sobre o GHK-Cu chega pronta no WhatsApp do Primo.',
+    },
   },
 
   // Textos de apoio usados em vários lugares.
@@ -319,6 +323,64 @@ export const COPY = {
     whatsappLabel: 'WhatsApp',
     rights: '© {year} Primo Peptídeos. Todos os direitos reservados.',
     backToTop: 'Voltar ao topo',
+  },
+
+  // Formulário de captação do GHK-Cu (/ghk-cu): 3 perguntas e o WhatsApp com a mensagem pronta.
+  // Cada opção tem o rótulo da tela (label) e o trecho que entra na mensagem (msg).
+  ghkForm: {
+    intro: {
+      title: 'Quer GHK-Cu?',
+      highlight: 'Fala com o Primo.',
+      lead: 'Responda três perguntas rápidas e a sua mensagem chega pronta no WhatsApp.',
+      start: 'Começar',
+      facts: ['Direto do fornecedor', 'Protocolo de uso incluso', RESEND],
+      imageAlt: 'Caixa de GHK-Cu com 10 frascos',
+    },
+    progress: 'Pergunta {current} de {total}',
+    back: 'Voltar',
+    next: 'Continuar',
+    finish: 'Ver minha mensagem',
+    experience: {
+      question: 'Você já usou GHK-Cu?',
+      options: [
+        { id: 'uso', label: 'Já uso', msg: 'já uso GHK-Cu' },
+        { id: 'usei', label: 'Já usei antes', msg: 'já usei GHK-Cu antes' },
+        { id: 'nunca', label: 'Nunca usei', msg: 'nunca usei, vai ser a primeira vez' },
+      ],
+    },
+    goals: {
+      question: 'Pra quais objetivos?',
+      hint: 'Pode marcar mais de um.',
+      options: [
+        { id: 'pele', label: 'Pele e rugas', msg: 'pele e rugas' },
+        { id: 'colageno', label: 'Colágeno e firmeza', msg: 'colágeno e firmeza' },
+        { id: 'cabelo', label: 'Cabelo', msg: 'cabelo' },
+        { id: 'marcas', label: 'Cicatrizes e marcas', msg: 'cicatrizes e marcas' },
+        { id: 'recuperacao', label: 'Recuperação', msg: 'recuperação' },
+        { id: 'longevidade', label: 'Longevidade', msg: 'longevidade' },
+      ],
+    },
+    name: {
+      question: 'Como você se chama?',
+      label: 'Seu nome',
+      placeholder: 'Seu primeiro nome',
+    },
+    done: {
+      title: 'Pronto, {name}.',
+      highlight: 'É só enviar.',
+      lead: 'Sua mensagem já está escrita. Toque no botão e a conversa abre com o Primo.',
+      bubbleLabel: 'Sua mensagem',
+      cta: 'Enviar no WhatsApp',
+      note: 'Nada é enviado antes de você apertar enviar.',
+      edit: 'Mudar respostas',
+    },
+    // Mensagem do WhatsApp. {experience} e {goals} vêm do msg das opções escolhidas.
+    message: {
+      opening: 'Olá, Primo! Meu nome é {name} e vim pelo formulário do GHK-Cu.',
+      experience: 'Experiência: {experience}.',
+      goals: 'Objetivos: {goals}.',
+      closing: 'Quero saber valores e disponibilidade.',
+    },
   },
 
   whatsappFloat: {
