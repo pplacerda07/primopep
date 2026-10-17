@@ -16,7 +16,8 @@ import { cn } from '@/lib/utils'
 const copy = COPY.ghkForm
 const LOCATION = 'ghk_form'
 const PRODUCT = 'ghk-cu'
-const IMAGE = '/peptideos/ghk-cu.webp'
+// Foto vertical (1086x1448): o recorte foca na caixa e nos frascos, que ficam no terço de baixo.
+const IMAGE = '/ghk-form.webp'
 
 const QUESTIONS = ['experience', 'goals', 'name'] as const
 type Question = (typeof QUESTIONS)[number]
@@ -255,11 +256,11 @@ function Intro({ onStart }: { onStart: () => void }) {
         <img
           src={IMAGE}
           alt={intro.imageAlt}
-          width={960}
-          height={720}
+          width={1086}
+          height={1448}
           decoding="async"
           fetchPriority="high"
-          className="aspect-[16/10] w-full object-cover lg:aspect-[4/3]"
+          className="aspect-[16/10] w-full object-cover object-[50%_80%] lg:aspect-[4/3]"
         />
       </div>
 
