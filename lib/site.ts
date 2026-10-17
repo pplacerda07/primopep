@@ -50,10 +50,10 @@ export const WHATSAPP_NUMBER = '556731980887' // +55 67 3198-0887
 
 export const WHATSAPP_DEFAULT_MESSAGE = 'Olá, Primo. Quero entender como funciona.'
 
-// Pixel da Meta (anúncios no Facebook e Instagram). Único ponto de troca do ID; a variável
-// NEXT_PUBLIC_META_PIXEL_ID (na Vercel) tem prioridade. String vazia desliga o pixel.
+// Pixel da Meta do site (PIXEL PRIMO DROP), em / e /catalogo. Único ponto de troca do ID; a
+// variável NEXT_PUBLIC_META_PIXEL_ID (na Vercel) tem prioridade. String vazia desliga o pixel.
 // Carrega só em produção. Eventos: PageView ao abrir/navegar e Lead em todo clique de WhatsApp.
-export const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID ?? '2090274458589717'
+export const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID ?? '2879731119080793'
 
 // Pixel do formulário do GHK-Cu (/ghk-cu), separado do pixel do site: a página do
 // formulário carrega SÓ este (PIXEL PRIMO GHK). A variável NEXT_PUBLIC_GHK_FORM_PIXEL_ID tem
